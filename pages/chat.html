@@ -1,0 +1,87 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0f172a">
+  <title>AI对话 - ClimbWise</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{cliff:{500:'#22c55e',600:'#16a34a'},rock:{500:'#a855f7'}}}}}</script>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body class="bg-slate-900 min-h-screen">
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-700/50">
+    <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-gradient-to-br from-cliff-500 to-rock-500 rounded-xl flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 9-14 9V3z"/></svg>
+        </div>
+        <span class="text-xl font-bold text-white">ClimbWise</span>
+      </div>
+      <a href="../index.html" class="text-slate-400 hover:text-white text-sm">← 返回首页</a>
+    </div>
+  </nav>
+  <div class="pt-20 pb-8 px-4 max-w-4xl mx-auto">
+    <h1 class="text-2xl font-bold text-white mb-2">💬 AI 对话</h1>
+    <p class="text-slate-400 text-sm mb-4">与AI教练实时交流，支持图片上传分析</p>
+    <div id="chatMessages" class="h-[60vh] overflow-y-auto bg-slate-800/60 border border-slate-700/50 rounded-2xl p-4 space-y-4 mb-4">
+      <div class="flex gap-3"><div class="w-8 h-8 bg-gradient-to-br from-cliff-500 to-rock-500 rounded-lg flex-shrink-0 flex items-center justify-center"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 9-14 9V3z"/></svg></div><div class="flex-1"><div class="bg-slate-700/50 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]"><p class="text-slate-200 text-sm">👋 你好！我是ClimbWise，你的AI攀岩私教。有什么关于攀岩的问题想问我吗？</p></div></div></div>
+    </div>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <button onclick="ask('如何提高我的指力？')" class="px-3 py-1.5 bg-slate-700/50 hover:bg-slate-600/50 rounded-full text-xs text-slate-300">指力训练</button>
+      <button onclick="ask('攀岩前如何热身？')" class="px-3 py-1.5 bg-slate-700/50 hover:bg-slate-600/50 rounded-full text-xs text-slate-300">热身技巧</button>
+      <button onclick="ask('如何克服红点恐惧？')" class="px-3 py-1.5 bg-slate-700/50 hover:bg-slate-600/50 rounded-full text-xs text-slate-300">心理建设</button>
+      <button onclick="ask('肩膀不舒服怎么办？')" class="px-3 py-1.5 bg-slate-700/50 hover:bg-slate-600/50 rounded-full text-xs text-slate-300">伤病咨询</button>
+    </div>
+    <div id="imageDropZone" class="border-2 border-dashed border-slate-600/50 rounded-xl p-4 text-center hover:border-cliff-500/50 transition-colors cursor-pointer mb-4">
+      <div class="flex items-center justify-center gap-2 text-slate-400 text-sm"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span id="imageUploadText">点击或拖拽上传图片</span></div>
+      <div id="imagePreviewContainer" class="hidden mt-3"><img id="imagePreview" class="max-h-24 mx-auto rounded-lg" alt=""><button onclick="clearImage()" class="mt-2 text-xs text-red-400">移除图片</button></div>
+      <input type="file" id="imageInput" accept="image/*" class="hidden">
+    </div>
+    <div class="flex gap-3">
+      <input type="text" id="chatInput" placeholder="输入你的问题..." class="flex-1 bg-slate-700/50 border border-slate-600/50 rounded-xl px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:border-cliff-500/50" onkeypress="if(event.key==='Enter')sendMsg()">
+      <button onclick="sendMsg()" id="sendBtn" class="px-6 py-3 bg-gradient-to-r from-cliff-500 to-cliff-600 hover:from-cliff-400 hover:to-cliff-500 text-white font-medium rounded-xl transition-all">发送</button>
+    </div>
+  </div>
+  <script src="../lib/api.js"></script>
+  <script src="../knowledge/system-prompt.js"></script>
+  <script src="../app.js"></script>
+  <script>
+    let currentImage = null;
+    document.getElementById('imageDropZone').addEventListener('click', () => document.getElementById('imageInput').click());
+    document.getElementById('imageDropZone').addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.classList.add('border-cliff-500'); });
+    document.getElementById('imageDropZone').addEventListener('dragleave', e => e.currentTarget.classList.remove('border-cliff-500'));
+    document.getElementById('imageDropZone').addEventListener('drop', e => { e.preventDefault(); e.currentTarget.classList.remove('border-cliff-500'); const file = e.dataTransfer.files[0]; if(file) handleImage(file); });
+    document.getElementById('imageInput').addEventListener('change', e => { if(e.target.files[0]) handleImage(e.target.files[0]); });
+    function handleImage(file) { const reader = new FileReader(); reader.onload = e => { currentImage = e.target.result; document.getElementById('imagePreview').src = currentImage; document.getElementById('imagePreviewContainer').classList.remove('hidden'); document.getElementById('imageUploadText').textContent = '已选择图片'; }; reader.readAsDataURL(file); }
+    function clearImage() { currentImage = null; document.getElementById('imagePreviewContainer').classList.add('hidden'); document.getElementById('imageUploadText').textContent = '点击或拖拽上传图片'; }
+    async function sendMsg() {
+      const input = document.getElementById('chatInput');
+      const msg = input.value.trim();
+      if (!msg && !currentImage) return;
+      if (!window.ClimbWiseAPI?.isConfigured?.()) { alert('请先配置API Key'); return; }
+      const container = document.getElementById('chatMessages');
+      const userDiv = document.createElement('div'); userDiv.className = 'flex justify-end animate-fadeIn';
+      userDiv.innerHTML = '<div class="chat-bubble user px-4 py-3 max-w-[85%]"><p class="text-sm">'+escapeHtml(msg||'[图片]')+'</p></div>';
+      container.appendChild(userDiv);
+      container.scrollTop = container.scrollHeight;
+      input.value = '';
+      const loadingDiv = document.createElement('div'); loadingDiv.className = 'flex gap-3 animate-fadeIn';
+      loadingDiv.innerHTML = '<div class="w-8 h-8 bg-gradient-to-br from-cliff-500 to-rock-500 rounded-lg flex-shrink-0 flex items-center justify-center"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 9-14 9V3z"/></svg></div><div class="loading-dots bg-slate-700/50 rounded-2xl rounded-tl-sm"><span></span><span></span><span></span></div>';
+      container.appendChild(loadingDiv);
+      container.scrollTop = container.scrollHeight;
+      try {
+        let reply; if (currentImage) { reply = await window.ClimbWiseAPI.sendMultimodalMessage(msg||'请分析这张图片', currentImage, []); } else { reply = await window.ClimbWiseAPI.sendMessage(msg, []); }
+        loadingDiv.remove();
+        const aiDiv = document.createElement('div'); aiDiv.className = 'flex gap-3 animate-fadeIn';
+        aiDiv.innerHTML = '<div class="w-8 h-8 bg-gradient-to-br from-cliff-500 to-rock-500 rounded-lg flex-shrink-0 flex items-center justify-center"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 9-14 9V3z"/></svg></div><div class="chat-bubble assistant px-4 py-3 max-w-[85%]"><p class="text-sm whitespace-pre-wrap">'+escapeHtml(reply)+'</p></div>';
+        container.appendChild(aiDiv);
+      } catch(error) { loadingDiv.remove(); alert('Error: '+error.message); }
+      clearImage();
+      container.scrollTop = container.scrollHeight;
+    }
+    function ask(q) { document.getElementById('chatInput').value = q; sendMsg(); }
+    function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+  </script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="description" content="ClimbWise - 你的AI攀岩私教">
+  <title>ClimbWise - AI攀岩私教</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{cliff:{50:'#f0fdf4',100:'#dcfce7',200:'#bbf7d0',300:'#86efac',400:'#4ade80',500:'#22c55e',600:'#16a34a',700:'#15803d',800:'#166534',900:'#14532d'},rock:{50:'#faf5ff',100:'#f3e8ff',200:'#e9d5ff',300:'#d8b4fe',400:'#c084fc',500:'#a855f7',600:'#9333ea',700:'#7e22ce',800:'#6b21a8',900:'#581c87'}}}}}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="font-sans antialiased">
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-700/50">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-gradient-to-br from-cliff-400 to-rock-500 rounded-xl flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 9-14 9V3z"/></svg>
+        </div>
+        <span class="text-xl font-bold bg-gradient-to-r from-cliff-400 to-rock-400 bg-clip-text text-transparent">ClimbWise</span>
+      </div>
+      <button onclick="openSettings()" class="p-2 rounded-lg hover:bg-slate-700/50 transition-colors">
+        <svg class="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      </button>
+    </div>
+  </nav>
+  <section id="heroSection" class="relative min-h-screen flex items-center justify-center pt-16 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900"></div>
+    <div class="absolute inset-0 opacity-20">
+      <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-cliff-500/30 rounded-full blur-3xl"></div>
+      <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-rock-500/20 rounded-full blur-3xl"></div>
+    </div>
+    <div class="relative z-10 max-w-4xl mx-auto px-4 py-20 text-center">
+      <div class="mb-8 flex justify-center">
+        <div class="w-24 h-24 bg-gradient-to-br from-cliff-400 via-cliff-500 to-rock-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-cliff-500/20">
+          <svg class="w-14 h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 17l6.5-11 4.5 7.5L18 10l-3 9-9-13.5L3 17z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 14l2-4m10 8l2-4"/></svg>
+        </div>
+      </div>
+      <h1 class="text-5xl md:text-7xl font-extrabold mb-6"><span class="bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">ClimbWise</span></h1>
+      <p class="text-2xl md:text-3xl text-slate-300 mb-4 font-light">你的AI攀岩私教</p>
+      <p class="text-lg text-slate-400 mb-12 max-w-xl mx-auto">专业、实用、随时随地。告别盲目训练，让AI帮你科学攀登。</p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+        <button onclick="showChat()" class="group px-8 py-4 bg-gradient-to-r from-cliff-500 to-cliff-600 hover:from-cliff-400 hover:to-cliff-500 text-white font-semibold rounded-2xl shadow-xl shadow-cliff-500/30 hover:shadow-cliff-500/50 transition-all duration-300 flex items-center justify-center gap-3">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+          开始AI对话 <span class="group-hover:translate-x-1 transition-transform">→</span>
+        </button>
+        <button onclick="showTrainer()" class="px-8 py-4 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600/50 hover:border-slate-500 text-white font-semibold rounded-2xl backdrop-blur-sm transition-all duration-300 flex items-center justify-center gap-3">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          训练计划
+        </button>
+      </div>
+      <div class="text-left max-w-2xl mx-auto">
+        <p class="text-sm text-slate-500 mb-3 uppercase tracking-wider">试试问这些问题</p>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="askQuestion('如何提高我的指力？')" class="px-4 py-2 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/50 rounded-full text-sm text-slate-300 hover:text-white transition-all">如何提高我的指力？</button>
+          <button onclick="askQuestion('攀岩前如何热身？')" class="px-4 py-2 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/50 rounded-full text-sm text-slate-300 hover:text-white transition-all">攀岩前如何热身？</button>
+          <button onclick="askQuestion('脚法总是打滑怎么办？')" class="px-4 py-2 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/50 rounded-full text-sm text-slate-300 hover:text-white transition-all">脚法总是打滑怎么办？</button>
+          <button onclick="askQuestion('肩膀有点不舒服是伤病吗？')" class="px-4 py-2 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/50 rounded-full text-sm text-slate-300 hover:text-white transition-all">肩膀有点不舒服是伤病吗？</button>
+        </div>
+      </div>
+    </div>
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce"><svg class="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg></div>
+  </section>
+  <section id="featuresSection" class="py-20 bg-slate-900/50">
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="text-center mb-16"><h2 class="text-3xl md:text-4xl font-bold text-white mb-4">为什么选择 ClimbWise？</h2><p class="text-slate-400 max-w-xl mx-auto">专业教练级别的指导，随时随地陪伴你的攀登之路</p></div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="group p-6 bg-gradient-to-br from-slate-800/80 to-slate-800/40 border border-slate-700/50 rounded-2xl hover:border-cliff-500/50 transition-all duration-300 hover:-translate-y-1"><div class="w-12 h-12 bg-cliff-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><svg class="w-6 h-6 text-cliff-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></div><h3 class="text-xl font-semibold text-white mb-2">AI 智能对话</h3><p class="text-slate-400 text-sm leading-relaxed">随时提问，获得专业解答。支持图片上传，让AI分析你的攀爬姿态和技术动作。</p></div>
+        <div class="group p-6 bg-gradient-to-br from-slate-800/80 to-slate-800/40 border border-slate-700/50 rounded-2xl hover:border-rock-500/50 transition-all duration-300 hover:-translate-y-1"><div class="w-12 h-12 bg-rock-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><svg class="w-6 h-6 text-rock-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg></div><h3 class="text-xl font-semibold text-white mb-2">训练计划生成</h3><p class="text-slate-400 text-sm leading-relaxed">根据你的目标、水平和时间，生成专属的周期化训练计划。</p></div>
+        <div class="group p-6 bg-gradient-to-br from-slate-800/80 to-slate-800/40 border border-slate-700/50 rounded-2xl hover:border-amber-500/50 transition-all duration-300 hover:-translate-y-1"><div class="w-12 h-12 bg-amber-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div><h3 class="text-xl font-semibold text-white mb-2">技术动作指导</h3><p class="text-slate-400 text-sm leading-relaxed">脚法、手部动作、身体姿态全覆盖。标准化动作，减少受伤风险。</p></div>
+        <div class="group p-6 bg-gradient-to-br from-slate-800/80 to-slate-800/40 border border-slate-700/50 rounded-2xl hover:border-red-500/50 transition-all duration-300 hover:-translate-y-1"><div class="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg></div><h3 class="text-xl font-semibold text-white mb-2">伤病预防与恢复</h3><p class="text-slate-400 text-sm leading-relaxed">了解常见伤病，学习预防策略和康复方法。</p></div>
+        <div class="group p-6 bg-gradient-to-br from-slate-800/80 to-slate-800/40 border border-slate-700/50 rounded-2xl hover:border-cyan-500/50 transition-all duration-300 hover:-translate-y-1"><div class="w-12 h-12 bg-cyan-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg></div><h3 class="text-xl font-semibold text-white mb-2">营养与心理</h3><p class="text-slate-400 text-sm leading-relaxed">科学补充营养，建立比赛心态，克服脱落恐惧。</p></div>
+        <div class="group p-6 bg-gradient-to-br from-slate-800/80 to-slate-800/40 border border-slate-700/50 rounded-2xl hover:border-violet-500/50 transition-all duration-300 hover:-translate-y-1"><div class="w-12 h-12 bg-violet-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><svg class="w-6 h-6 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div><h3 class="text-xl font-semibold text-white mb-2">图片分析</h3><p class="text-slate-400 text-sm leading-relaxed">上传攀爬照片或视频截图，AI帮你分析姿态和装备。</p></div>
+      </div>
+    </div>
+  </section>
+  <section id="chatSection" class="hidden py-20 bg-slate-900/80">
+    <div class="max-w-4xl mx-auto px-4">
+      <div class="text-center mb-8"><h2 class="text-3xl font-bold text-white mb-2">🚀 快速开始对话</h2><p class="text-slate-400">输入你的问题，AI教练随时为你解答</p></div>
+      <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl overflow-hidden backdrop-blur-sm">
+        <div id="chatMessages" class="h-80 overflow-y-auto p-4 space-y-4">
+          <div class="flex gap-3"><div class="w-8 h-8 bg-gradient-to-br from-cliff-400 to-rock-500 rounded-lg flex-shrink-0 flex items-center justify-center"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 9-14 9V3z"/></svg></div><div class="flex-1"><div class="bg-slate-700/50 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]"><p class="text-slate-200 text-sm leading-relaxed">👋 你好！我是ClimbWise，你的AI攀岩私教。有什么关于攀岩的问题想问我吗？你可以问我关于训练、技术、伤病、营养或者心理方面的问题。</p></div></div></div>
+        </div>
+        <div class="px-4 pb-2">
+          <div class="flex flex-wrap gap-2">
+            <button onclick="askQuestion('如何提高我的指力？')" class="px-3 py-1.5 bg-slate-700/50 hover:bg-slate-600/50 rounded-full text-xs text-slate-300 transition-colors">指力训练</button>
+            <button onclick="askQuestion('攀岩前如何热身？')" class="px-3 py-1.5 bg-slate-700/50 hover:bg-slate-600/50 rounded-full text-xs text-slate-300 transition-colors">热身技巧</button>
+            <button onclick="askQuestion('如何克服红点恐惧？')" class="px-3 py-1.5 bg-slate-700/50 hover:bg-slate-600/50 rounded-full text-xs text-slate-300 transition-colors">心理建设</button>
+            <button onclick="askQuestion('肩膀不舒服怎么办？')" class="px-3 py-1.5 bg-slate-700/50 hover:bg-slate-600/50 rounded-full text-xs text-slate-300 transition-colors">伤病咨询</button>
+            <button onclick="askQuestion('我应该每周训练几次？')" class="px-3 py-1.5 bg-slate-700/50 hover:bg-slate-600/50 rounded-full text-xs text-slate-300 transition-colors">训练频率</button>
+          </div>
+        </div>
+        <div id="imageDropZone" class="mx-4 mb-2 border-2 border-dashed border-slate-600/50 rounded-xl p-4 text-center hover:border-cliff-500/50 transition-colors cursor-pointer">
+          <div class="flex items-center justify-center gap-2 text-slate-400 text-sm"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span id="imageUploadText">点击或拖拽上传图片（可选）</span></div>
+          <div id="imagePreviewContainer" class="hidden mt-3"><img id="imagePreview" class="max-h-24 mx-auto rounded-lg" alt=""><button onclick="clearImage()" class="mt-2 text-xs text-red-400 hover:text-red-300">移除图片</button></div>
+          <input type="file" id="imageInput" accept="image/*" class="hidden">
+        </div>
+        <div class="p-4 border-t border-slate-700/50">
+          <div class="flex gap-3">
+            <input type="text" id="chatInput" placeholder="输入你的问题..." class="flex-1 bg-slate-700/50 border border-slate-600/50 rounded-xl px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:border-cliff-500/50 transition-colors" onkeypress="if(event.key==='Enter')sendChatMessage()">
+            <button onclick="sendChatMessage()" id="sendBtn" class="px-6 py-3 bg-gradient-to-r from-cliff-500 to-cliff-600 hover:from-cliff-400 hover:to-cliff-500 text-white font-medium rounded-xl transition-all flex items-center gap-2"><span>发送</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg></button>
+          </div>
+        </div>
+      </div>
+      <div class="text-center mt-6"><button onclick="hideChat()" class="text-slate-400 hover:text-white text-sm transition-colors">← 返回首页</button></div>
+    </div>
+  </section>
+  <section id="trainerSection" class="hidden py-20 bg-slate-900/80">
+    <div class="max-w-3xl mx-auto px-4">
+      <div class="text-center mb-8"><h2 class="text-3xl font-bold text-white mb-2">📋 训练计划生成器</h2><p class="text-slate-400">告诉我你的情况，我帮你制定专属训练计划</p></div>
+      <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6 backdrop-blur-sm">
+        <form id="trainerForm" class="space-y-6">
+          <div><label class="block text-sm font-medium text-slate-300 mb-3">你的攀岩水平</label><div class="grid grid-cols-3 gap-3"><label class="relative cursor-pointer"><input type="radio" name="level" value="beginner" class="peer sr-only" checked><div class="p-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-center peer-checked:border-cliff-500 peer-checked:bg-cliff-500/20 transition-all"><div class="text-white font-medium">初学者</div><div class="text-xs text-slate-400">V0-V2</div></div></label><label class="relative cursor-pointer"><input type="radio" name="level" value="intermediate" class="peer sr-only"><div class="p-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-center peer-checked:border-cliff-500 peer-checked:bg-cliff-500/20 transition-all"><div class="text-white font-medium">中级</div><div class="text-xs text-slate-400">V3-V5</div></div></label><label class="relative cursor-pointer"><input type="radio" name="level" value="advanced" class="peer sr-only"><div class="p-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-center peer-checked:border-cliff-500 peer-checked:bg-cliff-500/20 transition-all"><div class="text-white font-medium">高级</div><div class="text-xs text-slate-400">V6+</div></div></label></div></div>
+          <div><label class="block text-sm font-medium text-slate-300 mb-3">主要目标</label><div class="grid grid-cols-2 gap-3"><label class="relative cursor-pointer"><input type="radio" name="goal" value="strength" class="peer sr-only" checked><div class="p-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-center peer-checked:border-rock-500 peer-checked:bg-rock-500/20 transition-all"><div class="text-white font-medium text-sm">指力提升</div></div></label><label class="relative cursor-pointer"><input type="radio" name="goal" value="technique" class="peer sr-only"><div class="p-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-center peer-checked:border-rock-500 peer-checked:bg-rock-500/20 transition-all"><div class="text-white font-medium text-sm">技术精细化</div></div></label><label class="relative cursor-pointer"><input type="radio" name="goal" value="redpoint" class="peer sr-only"><div class="p-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-center peer-checked:border-rock-500 peer-checked:bg-rock-500/20 transition-all"><div class="text-white font-medium text-sm">Redpoint</div></div></label><label class="relative cursor-pointer"><input type="radio" name="goal" value="endurance" class="peer sr-only"><div class="p-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-center peer-checked:border-rock-500 peer-checked:bg-rock-500/20 transition-all"><div class="text-white font-medium text-sm">耐力提升</div></div></label></div></div>
+          <div><label class="block text-sm font-medium text-slate-300 mb-3">每周可用训练时间</label><select name="time" class="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cliff-500/50 transition-colors"><option value="3">3小时以下</option><option value="5" selected>3-5小时</option><option value="8">5-8小时</option><option value="10">8-10小时</option><option value="15">10小时以上</option></select></div>
+          <div><label class="block text-sm font-medium text-slate-300 mb-3">是否有伤病？（选填）</label><input type="text" name="injury" placeholder="例如：右手A2手指有点疼、肩袖问题等" class="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:border-cliff-500/50 transition-colors"></div>
+          <button type="button" onclick="generateTrainingPlan()" class="w-full py-4 bg-gradient-to-r from-cliff-500 to-cliff-600 hover:from-cliff-400 hover:to-cliff-500 text-white font-semibold rounded-xl shadow-lg shadow-cliff-500/30 transition-all flex items-center justify-center gap-3"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>生成专属训练计划</button>
+        </form>
+        <div id="trainingPlanResult" class="hidden mt-6 pt-6 border-t border-slate-700/50"><h3 class="text-xl font-bold text-white mb-4">🎯 你的专属训练计划</h3><div id="trainingPlanContent" class="space-y-3"></div></div>
+      </div>
+      <div class="text-center mt-6"><button onclick="hideTrainer()" class="text-slate-400 hover:text-white text-sm transition-colors">← 返回首页</button></div>
+    </div>
+  </section>
+  <div id="settingsModal" class="fixed inset-0 z-[100] hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeSettings()"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-6"><h3 class="text-xl font-bold text-white">⚙️ API 设置</h3><button onclick="closeSettings()" class="p-1 text-slate-400 hover:text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></div>
+      <div class="space-y-4">
+        <div id="configStatus" class="p-3 rounded-lg text-sm"></div>
+        <div><label class="block text-sm font-medium text-slate-300 mb-2">MiniMax API Key</label><input type="password" id="apiKeyInput" placeholder="输入你的API Key" class="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:border-cliff-500/50 transition-colors"></div>
+        <div><label class="block text-sm font-medium text-slate-300 mb-2">Group ID（可选）</label><input type="text" id="groupIdInput" placeholder="输入Group ID" class="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:border-cliff-500/50 transition-colors"></div>
+        <button onclick="saveApiSettings()" class="w-full py-3 bg-gradient-to-r from-cliff-500 to-cliff-600 hover:from-cliff-400 hover:to-cliff-500 text-white font-semibold rounded-xl transition-all">保存设置</button>
+        <p class="text-xs text-slate-500 text-center">API Key将从MiniMax开放平台获取</p>
+      </div>
+    </div>
+  </div>
+  <footer class="py-8 border-t border-slate-800 text-center text-slate-500 text-sm">© 2026 ClimbWise. 用 ❤️ 攀岩</footer>
+  <script src="lib/api.js"></script>
+  <script src="knowledge/system-prompt.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
