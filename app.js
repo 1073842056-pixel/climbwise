@@ -108,6 +108,11 @@
     $$('.color-dot').forEach(d => { d.classList.remove('selected'); d.style.opacity = '0.5'; d.style.transform = ''; });
     $('#read-photo-input').value = '';
     $('#read-start-btn').disabled = true;
+    // 清空holds标注
+    const holdsSvg = $('#result-holds-svg');
+    if (holdsSvg) holdsSvg.innerHTML = '';
+    // 停止播放
+    stopPlayBeta();
   }
 
   async function startReadAnalysis() {
@@ -190,6 +195,9 @@
     stickman = new window.ClimbStickman.StickmanRenderer(svgEl, imgEl);
     stickman.setBetaSteps(result.beta || []);
     stickman.setFrames(result.frames);
+    
+    // 绘制手点脚点标注
+    drawHoldsOverlay(result.holds, result.beta);
     const slider = $('#frame-slider');
     slider.max = result.frames.length - 1;
     slider.value = 0;
@@ -303,9 +311,67 @@
     }
   }
 
+  // ===== 手点脚点标注层 =====
+
+  /**
+   * 在岩壁照片上绘制手点和脚点标注
+   * @param {Array} holds - 手点脚点数据
+   * @param {Array} beta - beta步骤数据（用于高亮当前步骤相关的点）
+   */
+  function drawHoldsOverlay(holds, beta) {
+    const holdsSvg = $('#result-holds-svg');
+    if (!holdsSvg || !holds || !holds.length) return;
+    
+    let svg = `
+    <defs>
+      <filter id="hold-glow-hand" x="-100%" y="-100%" width="300%" height="300%">
+        <feGaussianBlur stdDeviation="0.02" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+      <filter id="hold-glow-foot" x="-100%" y="-100%" width="300%" height="300%">
+        <feGaussianBlur stdDeviation="0.015" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>`;
+    
+    holds.forEach((hold, i) => {
+      const x = hold.x;
+      const y = hold.y;
+      const isHand = hold.type === 'hand';
+      const isFoot = hold.type === 'foot';
+      
+      // 根据类型选择颜色和大小
+      const color = isHand ? '#38bdf8' : (isFoot ? '#22c55e' : '#a78bfa');
+      const glowFilter = isHand ? 'url(#hold-glow-hand)' : 'url(#hold-glow-foot)';
+      const glowColor = isHand ? 'rgba(56,189,248,0.5)' : 'rgba(34,197,94,0.5)';
+      
+      // size 对应圆的大小
+      const sizeMap = { large: 0.045, medium: 0.035, small: 0.025 };
+      const r = sizeMap[hold.size] || 0.030;
+      
+      // 发光背景
+      svg += `<circle cx="${x}" cy="${y}" r="${r * 1.8}" fill="${glowColor}" opacity="0.6" filter="${glowFilter}"/>`;
+      // 实心圆
+      svg += `<circle cx="${x}" cy="${y}" r="${r}" fill="${color}" opacity="0.9" stroke="rgba(255,255,255,0.5)" stroke-width="0.003"/>`;
+      
+      // 手点标注手型图标，脚点标注脚型图标
+      if (isHand) {
+        svg += `<text x="${x}" y="${y + r + 0.025}" text-anchor="middle" font-size="0.022" fill="rgba(255,255,255,0.8)">🤚</text>`;
+      } else {
+        svg += `<text x="${x}" y="${y + r + 0.025}" text-anchor="middle" font-size="0.020" fill="rgba(255,255,255,0.8)">🦶</text>`;
+      }
+    });
+    
+    holdsSvg.innerHTML = svg;
+  }
+
   // ===== Beta自动播放 =====
-  
-  function togglePlayBeta() {
     if (isPlayingBeta) {
       stopPlayBeta();
     } else {
