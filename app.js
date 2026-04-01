@@ -75,7 +75,22 @@
     $('#read-start-btn')?.addEventListener('click', startReadAnalysis);
     $('#read-back')?.addEventListener('click', resetReadUI);
     $('#read-restart')?.addEventListener('click', resetReadUI);
-    $('#save-route-btn')?.addEventListener('click', () => showToast('已保存！'));
+    $('#save-route-btn')?.addEventListener('click', () => {
+      if (!analysisResult) return;
+      const route = {
+        color: selectedColor,
+        grade: analysisResult.subjectiveGrade || 'V3',
+        gradeEquivalent: analysisResult.overallScore ? window.CLIMBING_KNOWLEDGE.scoreToGrade(analysisResult.overallScore) : 'V3',
+        holds: analysisResult.holds || [],
+        beta: analysisResult.beta || [],
+        frames: analysisResult.frames || [],
+        difficultyReason: analysisResult.cruxDescription || analysisResult.difficultyReason || '',
+        startDescription: analysisResult.startDescription || '',
+        createdAt: new Date().toISOString()
+      };
+      window.ClimbStorage.saveRouteCard(route);
+      showToast('线路已保存！');
+    });
     $('#prev-frame')?.addEventListener('click', () => changeFrame(-1));
     $('#next-frame')?.addEventListener('click', () => changeFrame(1));
     $('#frame-slider')?.addEventListener('input', e => { currentFrame = parseInt(e.target.value); stickman?.goTo(currentFrame); updateFrameUI(); renderBetaCards(analysisResult?.beta); });

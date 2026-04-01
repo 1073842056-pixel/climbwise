@@ -157,3 +157,11 @@ stickman.js → SVG火柴人动画（逐帧渲染）
 - beta-card使用CSS类样式,移除冗余inline覆盖
 - 概览区cruxText/difficultyReason合并显示
 - 移除底部重复的难度说明元素
+
+### 精读 Round 12-13
+- R12: Beta对比逐行对比(匹配度+动作对比表格)
+- R13: prompt规范六-常见错误禁止清单
+
+### 精读 Round 14 (02:20)
+- 保存线路按钮真实写入storage
+- window.CLIMBING_KNOWLEDGE.scoreToGrade()调用保存等级
