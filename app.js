@@ -168,6 +168,9 @@
       updateReadStatus('完成！', 100);
       updateReadDots(3);
       await sleep(400);
+      if (result.isDemo) {
+        showToast('（演示数据）');
+      }
       showReadResult(result);
     } catch(e) {
       console.error('[Read]', e);
@@ -204,6 +207,9 @@
     $('#read-result').classList.remove('hidden');
     $('#result-wall-img').src = photoDataUrl;
     $('#read-grade-badge').textContent = result.subjectiveGrade || 'V3-4';
+    if (result.isDemo) {
+      $('#read-grade-badge').style.background = '#ef4444';
+    }
 
     const svgEl = $('#result-stickman-svg');
     const imgEl = $('#result-wall-img');
