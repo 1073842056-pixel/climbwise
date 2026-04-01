@@ -388,6 +388,8 @@
   }
 
   // ===== Beta自动播放 =====
+  
+  function togglePlayBeta() {
     if (isPlayingBeta) {
       stopPlayBeta();
     } else {
@@ -591,25 +593,25 @@
         compareDiv.id = 'beta-compare';
         compareDiv.className = 'card';
         compareDiv.style.marginBottom = '14px';
-        const optimalMoves = (result.savedBeta?.beta||[]).map(b => b.moveType||'').filter(Boolean);
-        const userMoves = (result.stepScores||[]).map(s => s.moveType||'').filter(Boolean);
-        const matchRate = result.savedBeta?.beta?.length ? Math.round(userMoves.filter(m => optimalMoves.includes(m)).length / optimalMoves.length * 100) : 0;
-        compareDiv.innerHTML = `
-          <p style="font-size:13px;font-weight:600;margin-bottom:12px;">⚖️ Beta对比</p>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-            <div style="background:var(--bg-secondary);padding:12px;border-radius:10px;text-align:center;">
-              <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">你的Beta</div>
-              <div style="font-size:13px;font-weight:700;color:var(--orange);">${userMoves.slice(0,3).join(' → ') || '—'}</div>
-            </div>
-            <div style="background:var(--bg-secondary);padding:12px;border-radius:10px;text-align:center;">
-              <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">最优Beta</div>
-              <div style="font-size:13px;font-weight:700;color:var(--cyan);">${optimalMoves.slice(0,3).join(' → ') || '—'}</div>
-            </div>
-          </div>
-          <div style="text-align:center;padding:8px;background:var(--orange-light);border-radius:10px;">
-            <span style="font-size:13px;color:var(--orange);font-weight:700;">匹配度 ${result.betaMatchRate||'—'}</span>
-          </div>
-        `;
+        const optimalSteps = (result.savedBeta?.beta||[]);
+        const userSteps = (result.stepScores||[]);
+        
+        // 构建对比行
+        const maxLen = Math.max(optimalSteps.length, userSteps.length);
+        let rows = '';
+        for (let i = 0; i < maxLen; i++) {
+          const opt = optimalSteps[i];
+          const usr = userSteps[i];
+          const isMatch = opt?.moveType && usr?.moveType && opt.moveType === usr.moveType;
+          const rowColor = isMatch ? 'var(--cyan)' : '#ef4444';
+          rows += `<div style="display:grid;grid-template-columns:24px 1fr 1fr;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);">
+            <span style="font-size:11px;color:var(--text-muted);">${i+1}</span>
+            <div style="font-size:12px;color:var(--orange);">${usr?.handFootPair?.split('+')[0]||'—'}</div>
+            <div style="font-size:12px;color:${rowColor};">${opt?.handPosition?.split(',')[0]||opt?.description?.slice(0,20)||'—'}</div>
+          </div>`;
+        }
+        
+        compareDiv.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><p style="font-size:13px;font-weight:700;margin:0;">⚖️ Beta对比</p><span style="font-size:12px;font-weight:700;color:var(--cyan);background:rgba(0,180,166,0.1);padding:3px 10px;border-radius:100px;">'+(result.betaMatchRate||'—')+'</span></div><div style="display:grid;grid-template-columns:24px 1fr 1fr;gap:8px;margin-bottom:8px;"><div></div><div style="font-size:10px;font-weight:700;color:var(--orange);letter-spacing:0.5px;">你的动作</div><div style="font-size:10px;font-weight:700;color:var(--cyan);letter-spacing:0.5px;">最优动作</div></div>'+rows;
         $('#review-result .app-content')?.insertBefore(compareDiv, $('#review-result .card'));
       }
     }
