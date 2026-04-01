@@ -127,3 +127,17 @@ stickman.js → SVG火柴人动画（逐帧渲染）
 - README.md 完整文档
 - 全部推送 GitHub Pages
 - 功能完整性最终检查
+
+
+### 精读 Round 1-3 (01:00-01:30)
+- R1: Prompt升级4维度格式(hand/foot/hip/body)+坐标校验
+- R2: Beta自动播放(1.5s步进)+步骤指示器
+- R3: 岩壁照片手点脚点标注(蓝色手/绿色脚+emoji+序号)
+
+### 精读 Round 4 (01:40) - 消干扰+路线阅读框架
+- prompt融入路线阅读5步法(起点终点→Hold角色→难点定位→手脚配对→休息点)
+- beta新增cruxStep/restPoint标记
+- holds新增holdRole字段(pulloff/directional/stabilizer/enabler/deceptive)
+- 手脚配对格式强化
+- 标注升级:步骤序号+更大发光效果
+- drawHoldsOverlay只显示所选颜色点(其他颜色消除)

@@ -235,56 +235,53 @@
     container.innerHTML = '';
     (beta||[]).forEach((step, i) => {
       const div = document.createElement('div');
-      div.className = 'beta-card';
       div.style.borderLeftColor = i === currentFrame ? 'var(--orange)' : 'var(--border)';
       div.style.padding = '14px 16px';
       div.style.marginBottom = '10px';
       div.style.background = i === currentFrame ? 'var(--wall)' : 'var(--bg-secondary)';
       div.style.borderRadius = '12px';
-      div.style.borderLeft = `4px solid ${i === currentFrame ? 'var(--orange)' : 'var(--border)'}`;
+      div.style.borderLeft = `5px solid ${i === currentFrame ? 'var(--orange)' : 'var(--border)'}`;
       
-      // 构建4维度展示
-      const handIcon = '🤚';
-      const footIcon = '🦶';
-      const hipIcon = '🔴';
-      const bodyIcon = '🧍';
+      // 步骤标签（判断crux/rest）
+      let stepLabel = `第${step.step||i+1}步`;
+      let labelBg = 'var(--orange)';
+      if (step.cruxStep) { stepLabel = '⚡ 难点'; labelBg = '#ef4444'; }
+      else if (step.restPoint) { stepLabel = '💤 休息'; labelBg = 'var(--cyan)'; }
       
-      const handPos = step.handPosition || step.description || '';
+      const handPos = step.handPosition || '';
       const footPos = step.footPosition || '';
       const hipPos = step.hipAction || '';
       const bodyPos = step.bodyPosture || '';
       const keyPt = step.keyPoint || '';
       
       div.innerHTML = `
-        <div style="font-size:13px;font-weight:800;margin-bottom:10px;color:var(--orange);">
-          🔥 第${step.step||i+1}步
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <div style="font-size:11px;font-weight:800;padding:3px 10px;border-radius:100px;color:#fff;background:${labelBg};flex-shrink:0;">${stepLabel}</div>
         </div>
         
-        <div style="display:grid;gap:8px;margin-bottom:10px;">
-          ${handPos ? `<div style="display:flex;gap:8px;align-items:flex-start;">
-            <span style="font-size:14px;flex-shrink:0;">${handIcon}</span>
-            <span style="font-size:12.5px;color:var(--text);line-height:1.5;">${handPos}</span>
-          </div>` : ''}
-          
-          ${footPos ? `<div style="display:flex;gap:8px;align-items:flex-start;">
-            <span style="font-size:14px;flex-shrink:0;">${footIcon}</span>
-            <span style="font-size:12.5px;color:var(--text);line-height:1.5;">${footPos}</span>
-          </div>` : ''}
-          
-          ${hipPos ? `<div style="display:flex;gap:8px;align-items:flex-start;">
-            <span style="font-size:14px;flex-shrink:0;">${hipIcon}</span>
-            <span style="font-size:12.5px;color:var(--text);line-height:1.5;">${hipPos}</span>
-          </div>` : ''}
-          
-          ${bodyPos ? `<div style="display:flex;gap:8px;align-items:flex-start;">
-            <span style="font-size:14px;flex-shrink:0;">${bodyIcon}</span>
-            <span style="font-size:12.5px;color:var(--text);line-height:1.5;">${bodyPos}</span>
-          </div>` : ''}
-        </div>
+        ${handPos ? `<div style="margin-bottom:7px;">
+          <div style="font-size:10px;font-weight:700;color:var(--orange);margin-bottom:3px;letter-spacing:0.5px;">🤚 手</div>
+          <div style="font-size:12.5px;color:var(--text);line-height:1.55;">${handPos}</div>
+        </div>` : ''}
         
-        ${keyPt ? `<div style="background:var(--orange-light);border-radius:8px;padding:10px 12px;margin-top:6px;">
-          <div style="font-size:11px;font-weight:700;color:var(--orange);margin-bottom:4px;">💡 核心要点</div>
-          <div style="font-size:12.5px;color:var(--text);line-height:1.6;">${keyPt}</div>
+        ${footPos ? `<div style="margin-bottom:7px;">
+          <div style="font-size:10px;font-weight:700;color:#22c55e;margin-bottom:3px;letter-spacing:0.5px;">🦶 脚</div>
+          <div style="font-size:12.5px;color:var(--text);line-height:1.55;">${footPos}</div>
+        </div>` : ''}
+        
+        ${hipPos ? `<div style="margin-bottom:7px;">
+          <div style="font-size:10px;font-weight:700;color:#a78bfa;margin-bottom:3px;letter-spacing:0.5px;">🔴 髋</div>
+          <div style="font-size:12.5px;color:var(--text);line-height:1.55;">${hipPos}</div>
+        </div>` : ''}
+        
+        ${bodyPos ? `<div style="margin-bottom:7px;">
+          <div style="font-size:10px;font-weight:700;color:var(--text-muted);margin-bottom:3px;letter-spacing:0.5px;">🧍 姿态</div>
+          <div style="font-size:12.5px;color:var(--text);line-height:1.55;">${bodyPos}</div>
+        </div>` : ''}
+        
+        ${keyPt ? `<div style="background:rgba(255,107,53,0.08);border-radius:8px;padding:9px 12px;margin-top:4px;border:1px solid rgba(255,107,53,0.15);">
+          <div style="font-size:10px;font-weight:700;color:var(--orange);margin-bottom:3px;">💡 核心要点</div>
+          <div style="font-size:12px;color:var(--text);line-height:1.6;">${keyPt}</div>
         </div>` : ''}
       `;
       
@@ -315,24 +312,33 @@
 
   /**
    * 在岩壁照片上绘制手点和脚点标注
-   * @param {Array} holds - 手点脚点数据
+   * 只显示用户所选颜色的点，消除其他颜色干扰
+   * @param {Array} holds - 手点脚点数据（只包含所选颜色的点）
    * @param {Array} beta - beta步骤数据（用于高亮当前步骤相关的点）
    */
   function drawHoldsOverlay(holds, beta) {
     const holdsSvg = $('#result-holds-svg');
-    if (!holdsSvg || !holds || !holds.length) return;
+    if (!holdsSvg) return;
     
+    // 清空之前的标注
     let svg = `
     <defs>
       <filter id="hold-glow-hand" x="-100%" y="-100%" width="300%" height="300%">
-        <feGaussianBlur stdDeviation="0.02" result="blur"/>
+        <feGaussianBlur stdDeviation="0.025" result="blur"/>
         <feMerge>
           <feMergeNode in="blur"/>
           <feMergeNode in="SourceGraphic"/>
         </feMerge>
       </filter>
       <filter id="hold-glow-foot" x="-100%" y="-100%" width="300%" height="300%">
-        <feGaussianBlur stdDeviation="0.015" result="blur"/>
+        <feGaussianBlur stdDeviation="0.018" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+      <filter id="text-glow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="0.008" result="blur"/>
         <feMerge>
           <feMergeNode in="blur"/>
           <feMergeNode in="SourceGraphic"/>
@@ -340,31 +346,45 @@
       </filter>
     </defs>`;
     
+    if (!holds || !holds.length) {
+      holdsSvg.innerHTML = '';
+      return;
+    }
+    
     holds.forEach((hold, i) => {
       const x = hold.x;
       const y = hold.y;
       const isHand = hold.type === 'hand';
       const isFoot = hold.type === 'foot';
       
-      // 根据类型选择颜色和大小
-      const color = isHand ? '#38bdf8' : (isFoot ? '#22c55e' : '#a78bfa');
-      const glowFilter = isHand ? 'url(#hold-glow-hand)' : 'url(#hold-glow-foot)';
-      const glowColor = isHand ? 'rgba(56,189,248,0.5)' : 'rgba(34,197,94,0.5)';
+      // 手点蓝色发光，脚点绿色发光
+      const color = isHand ? '#38bdf8' : '#22c55e';
+      const glowColor = isHand ? 'rgba(56,189,248,0.6)' : 'rgba(34,197,94,0.6)';
       
-      // size 对应圆的大小
-      const sizeMap = { large: 0.045, medium: 0.035, small: 0.025 };
-      const r = sizeMap[hold.size] || 0.030;
+      // size对应圆的大小
+      const sizeMap = { large: 0.050, medium: 0.038, small: 0.026 };
+      const r = sizeMap[hold.size] || 0.035;
       
-      // 发光背景
-      svg += `<circle cx="${x}" cy="${y}" r="${r * 1.8}" fill="${glowColor}" opacity="0.6" filter="${glowFilter}"/>`;
+      // 步骤序号（第几步用到这个点）
+      const stepUsed = [];
+      (beta||[]).forEach((step, si) => {
+        if (step._usedHolds && step._usedHolds.includes(i)) stepUsed.push(si + 1);
+      });
+      const stepLabel = stepUsed.length ? stepUsed.join(',') : '';
+      
+      // 大发光背景
+      svg += `<circle cx="${x}" cy="${y}" r="${r * 2.2}" fill="${glowColor}" opacity="0.5" filter="url(#hold-glow-${isHand?'hand':'foot'})"/>`;
+      // 中等光晕
+      svg += `<circle cx="${x}" cy="${y}" r="${r * 1.5}" fill="${glowColor}" opacity="0.7"/>`;
       // 实心圆
-      svg += `<circle cx="${x}" cy="${y}" r="${r}" fill="${color}" opacity="0.9" stroke="rgba(255,255,255,0.5)" stroke-width="0.003"/>`;
+      svg += `<circle cx="${x}" cy="${y}" r="${r}" fill="${color}" opacity="0.95" stroke="rgba(255,255,255,0.6)" stroke-width="0.004"/>`;
       
-      // 手点标注手型图标，脚点标注脚型图标
-      if (isHand) {
-        svg += `<text x="${x}" y="${y + r + 0.025}" text-anchor="middle" font-size="0.022" fill="rgba(255,255,255,0.8)">🤚</text>`;
-      } else {
-        svg += `<text x="${x}" y="${y + r + 0.025}" text-anchor="middle" font-size="0.020" fill="rgba(255,255,255,0.8)">🦶</text>`;
+      // 手/脚图标
+      svg += `<text x="${x}" y="${y + r + 0.030}" text-anchor="middle" font-size="0.024" fill="rgba(255,255,255,0.95)" filter="url(#text-glow)">${isHand?'🤚':'🦶'}</text>`;
+      
+      // 步骤序号（如果这个点被用到）
+      if (stepLabel) {
+        svg += `<text x="${x + r * 0.8}" y="${y - r * 0.8}" text-anchor="middle" font-size="0.020" fill="#fff" font-weight="bold">${stepLabel}</text>`;
       }
     });
     
