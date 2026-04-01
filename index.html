@@ -382,31 +382,64 @@
         </div>
       </div>
       
-      <!-- 能力雷达 -->
-      <div class="card">
-        <h2 class="card-title">📊 能力评分</h2>
-        <div id="ability-bars">
-          <div class="chart-row">
-            <span class="chart-label">力量</span>
-            <div class="chart-track"><div class="chart-fill" id="ab-strength" style="width:0%"></div></div>
-            <span class="chart-value" id="ab-strength-val">—</span>
+      <!-- ===== 能力评分2.0 ===== -->
+      <div id="ability-overview-section" class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h2 class="card-title" style="margin:0;">🏆 能力评分</h2>
+          <button class="select-pill" id="ai-eval-btn" style="font-size:12px;padding:6px 12px;">🧠 AI评估</button>
+        </div>
+        <div class="ability-hero">
+          <div class="ability-score-main">
+            <span class="score-num" id="ability-total-num">—</span>
+            <span class="score-max">/ 10</span>
           </div>
-          <div class="chart-row">
-            <span class="chart-label">核心</span>
-            <div class="chart-track"><div class="chart-fill" id="ab-core" style="width:0%"></div></div>
-            <span class="chart-value" id="ab-core-val">—</span>
+          <div class="ability-level-badge" id="ability-level-badge">暂无数据</div>
+        </div>
+        <div class="ability-dimension-grid">
+          <div class="dim-card" data-dim="tech">
+            <div class="dim-header">
+              <span class="dim-icon">🧠</span>
+              <span class="dim-label">技术质量</span>
+              <span class="dim-score" id="dim-tech-score">—</span>
+            </div>
+            <div class="dim-bar-track"><div class="dim-bar-fill" id="dim-tech-bar" style="width:0%"></div></div>
+            <div class="dim-weight">权重 30%</div>
           </div>
-          <div class="chart-row">
-            <span class="chart-label">耐力</span>
-            <div class="chart-track"><div class="chart-fill" id="ab-endure" style="width:0%"></div></div>
-            <span class="chart-value" id="ab-endure-val">—</span>
+          <div class="dim-card" data-dim="diff">
+            <div class="dim-header">
+              <span class="dim-icon">🏔️</span>
+              <span class="dim-label">难度等级</span>
+              <span class="dim-score" id="dim-diff-score">—</span>
+            </div>
+            <div class="dim-bar-track"><div class="dim-bar-fill" id="dim-diff-bar" style="width:0%"></div></div>
+            <div class="dim-weight">权重 25%</div>
           </div>
-          <div class="chart-row">
-            <span class="chart-label">柔韧</span>
-            <div class="chart-track"><div class="chart-fill" id="ab-flex" style="width:0%"></div></div>
-            <span class="chart-value" id="ab-flex-val">—</span>
+          <div class="dim-card" data-dim="freq">
+            <div class="dim-header">
+              <span class="dim-icon">📅</span>
+              <span class="dim-label">频率坚持</span>
+              <span class="dim-score" id="dim-freq-score">—</span>
+            </div>
+            <div class="dim-bar-track"><div class="dim-bar-fill" id="dim-freq-bar" style="width:0%"></div></div>
+            <div class="dim-weight">权重 20%</div>
+          </div>
+          <div class="dim-card" data-dim="style">
+            <div class="dim-header">
+              <span class="dim-icon">🎯</span>
+              <span class="dim-label">风格适应</span>
+              <span class="dim-score" id="dim-style-score">—</span>
+            </div>
+            <div class="dim-bar-track"><div class="dim-bar-fill" id="dim-style-bar" style="width:0%"></div></div>
+            <div class="dim-weight">权重 25%</div>
           </div>
         </div>
+        <div class="ability-stats-row">
+          <div class="stat-chip"><span class="stat-val" id="stat-sends">—</span><span class="stat-label">完攀</span></div>
+          <div class="stat-chip"><span class="stat-val" id="stat-total">—</span><span class="stat-label">总训练</span></div>
+          <div class="stat-chip"><span class="stat-val" id="stat-week-sends">—</span><span class="stat-label">本周完攀</span></div>
+        </div>
+        <div id="ability-trend-section"></div>
+        <div id="ability-radar-section" style="min-height:260px;margin-top:16px;"></div>
       </div>
       
       <!-- 训练洞察 -->
@@ -476,5 +509,8 @@
 <script src="lib/stickman.js"></script>
 <script src="lib/video-analysis.js"></script>
 <script src="app.js"></script>
+<script src="ability/ability.js"></script>
+<script src="ability/ability-minimax.js"></script>
+<script src="ability/ability-ui.js"></script>
 </body>
 </html>

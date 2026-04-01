@@ -51,7 +51,7 @@
     $('#page-' + page).classList.add('active');
     $$('.tab-nav-item').forEach(b => b.classList.toggle('active', b.dataset.page === page));
     if (page === 'train') { updateTrainSummary(); updateTrainHistory(); }
-    if (page === 'profile') { loadProfileData(); updateCalendar(); updateGymList(); updateSavedRoutes(); updateTrainingInsights(); }
+    if (page === 'profile') { loadProfileData(); updateCalendar(); updateGymList(); updateSavedRoutes(); updateTrainingInsights(); if (window.ClimbAbilityUI) window.ClimbAbilityUI.updateProfileAbilitySection(); }
   }
 
   // ==================== Tab1: 读线 ====================
@@ -814,14 +814,7 @@
     const p = window.ClimbStorage.getProfile();
     $('#profile-physical').textContent = `${p.height}cm / ${p.weight}kg`;
     $('#profile-detail').textContent = `臂展${p.armSpan}cm · 引体${p.pullUp}个`;
-    const pullUpScore = Math.min(10, (p.pullUp||5)*0.7+3);
-    const coreScore = Math.min(10, pullUpScore*0.9);
-    const endurScore = Math.min(10, (p.climbingFrequency||2)*2+4);
-    const flexScore = 6.5;
-    updateAbilityBar('ab-strength', 'ab-strength-val', pullUpScore);
-    updateAbilityBar('ab-core', 'ab-core-val', coreScore);
-    updateAbilityBar('ab-endure', 'ab-endure-val', endurScore);
-    updateAbilityBar('ab-flex', 'ab-flex-val', flexScore);
+    // 能力评分2.0由 ClimbAbilityUI.updateProfileAbilitySection() 渲染
   }
 
   function loadProfileForm() {
@@ -1000,6 +993,31 @@
   }
 
   function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  // ===== AI评估按钮 =====
+  document.addEventListener('DOMContentLoaded', () => {
+    const aiBtn = document.getElementById('ai-eval-btn');
+    if (aiBtn) {
+      aiBtn.addEventListener('click', async () => {
+        if (!window.ClimbAbilityMiniMax) { showToast('AI评估模块未加载'); return; }
+        aiBtn.textContent = '评估中...';
+        aiBtn.disabled = true;
+        try {
+          const logs = window.ClimbStorage.getGymLogs();
+          const toEval = logs.filter(l => (l.result === 'send' || l.result === 'flash') && !window.ClimbAbilityStorage.getTechEvaluation(l.id || l.createdAt));
+          if (toEval.length === 0) { showToast('暂无需要评估的记录'); }
+          else {
+            for (const log of toEval) {
+              await window.ClimbAbilityMiniMax.evaluateLog(log);
+            }
+            if (window.ClimbAbilityUI) window.ClimbAbilityUI.updateProfileAbilitySection();
+            showToast(`已完成 ${toEval.length} 条AI评估`);
+          }
+        } catch(e) { showToast('评估失败:' + e.message); }
+        finally { aiBtn.textContent = '🧠 AI评估'; aiBtn.disabled = false; }
+      });
+    }
+  });
 
   // 启动
   if (document.readyState === 'loading') {
