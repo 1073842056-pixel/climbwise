@@ -382,22 +382,6 @@
       }
     }
     
-    // 训练计划
-    if (result.trainingPlan?.length) {
-      const planEl = $('#training-plan');
-      if (!planEl) {
-        const planDiv = document.createElement('div');
-        planDiv.id = 'training-plan';
-        planDiv.className = 'card';
-        planDiv.style.marginBottom = '14px';
-        planDiv.innerHTML = `<p style="font-size:13px;font-weight:600;margin-bottom:10px;">📋 训练计划</p>
-          <ul style="list-style:none;padding:0;">
-            ${result.trainingPlan.map(t => `<li style="font-size:13px;color:var(--text-secondary);margin-bottom:6px;line-height:1.5;">📌 ${t}</li>`).join('')}
-          </ul>`;
-        $('#review-result .app-content')?.appendChild(planDiv);
-      }
-    }
-    
     // Beta对比（当关联了线路时）
     const linkId = $('#review-route-select')?.value;
     if (linkId && savedBeta) {
