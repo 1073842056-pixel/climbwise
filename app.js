@@ -514,6 +514,7 @@
       const result = await window.ClimbVideoAnalysis.analyzeClimbingAction(frames, savedBeta, profile);
       result.segment = segment;
       result.frames = frames;
+      result.savedBeta = savedBeta;
       currentReviewResult = result;
       updateReviewDots(3);
       updateReviewStatus('正在生成报告...', 80);
@@ -587,16 +588,16 @@
     
     // Beta对比（当关联了线路时）
     const linkId = $('#review-route-select')?.value;
-    if (linkId && savedBeta) {
+    if (linkId && result.savedBeta) {
       const compareEl = $('#beta-compare');
       if (!compareEl) {
         const compareDiv = document.createElement('div');
         compareDiv.id = 'beta-compare';
         compareDiv.className = 'card';
         compareDiv.style.marginBottom = '14px';
-        const optimalMoves = (savedBeta.beta||[]).map(b => b.moveType||'').filter(Boolean);
+        const optimalMoves = (result.savedBeta?.beta||[]).map(b => b.moveType||'').filter(Boolean);
         const userMoves = (result.stepScores||[]).map(s => s.moveType||'').filter(Boolean);
-        const matchRate = savedBeta.beta?.length ? Math.round(userMoves.filter(m => optimalMoves.includes(m).length / optimalMoves.length * 100) : 0;
+        const matchRate = result.savedBeta?.beta?.length ? Math.round(userMoves.filter(m => optimalMoves.includes(m)).length / optimalMoves.length * 100) : 0;
         compareDiv.innerHTML = `
           <p style="font-size:13px;font-weight:600;margin-bottom:12px;">⚖️ Beta对比</p>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
@@ -619,12 +620,19 @@
 
     $('#step-scores').innerHTML = (result.stepScores||[]).map(step => {
       const color = step.score >= 8 ? 'var(--cyan)' : step.score >= 6 ? 'var(--orange)' : '#ef4444';
-      return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-        <span style="font-size:12px;color:var(--text-secondary);width:60px;flex-shrink:0;">第${step.step}步</span>
-        <div style="flex:1;height:8px;background:var(--wall);border-radius:4px;overflow:hidden;">
-          <div style="height:100%;width:${(step.score||5)*10}%;background:${color};border-radius:4px;"></div>
+      const moveIcon = step.moveType ? `<span style="font-size:11px;padding:2px 8px;background:var(--orange-light);color:var(--orange);border-radius:100px;font-weight:600;margin-left:4px;">${step.moveType}</span>` : '';
+      const handFootPair = step.handFootPair ? `<div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">🤚🦶 ${step.handFootPair}</div>` : '';
+      const issueText = step.issue ? `<div style="font-size:11px;color:#ef4444;margin-top:2px;">⚠️ ${step.issue}</div>` : '';
+      const suggestText = step.suggestion ? `<div style="font-size:11px;color:var(--cyan);margin-top:2px;">→ ${step.suggestion}</div>` : '';
+      return `<div style="background:var(--wall);border-radius:12px;padding:12px 14px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+          <span style="font-size:13px;font-weight:700;color:var(--text);width:60px;flex-shrink:0;">第${step.step}步</span>${moveIcon}
+          <div style="flex:1;height:6px;background:var(--bg-secondary);border-radius:3px;overflow:hidden;">
+            <div style="height:100%;width:${(step.score||5)*10}%;background:${color};border-radius:3px;"></div>
+          </div>
+          <span style="font-size:14px;font-weight:800;color:${color};width:36px;text-align:right;">${(step.score||5).toFixed(1)}</span>
         </div>
-        <span style="font-size:13px;font-weight:700;width:36px;text-align:right;">${(step.score||5).toFixed(1)}</span>
+        ${handFootPair}${issueText}${suggestText}
       </div>`;
     }).join('');
     showToast('赏线完成！');
@@ -635,9 +643,10 @@
     if (!container) return;
     container.innerHTML = '';
     (frames||[]).slice(0,5).forEach((f, i) => {
+      const imgSrc = typeof f === 'string' ? f : (f.data || f);
       const div = document.createElement('div');
       div.className = 'frame-thumb' + (i===0?' active':'');
-      div.innerHTML = `<img src="${f}" alt="帧${i+1}">`;
+      div.innerHTML = `<img src="${imgSrc}" alt="帧${i+1}">`;
       div.addEventListener('click', () => { $$('.frame-thumb').forEach(t => t.classList.remove('active')); div.classList.add('active'); });
       container.appendChild(div);
     });
