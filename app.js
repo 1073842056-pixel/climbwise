@@ -200,8 +200,17 @@
     $('#res-strength-val').textContent = v(result.strengthScore);
     $('#res-reach').style.width = f(result.reachScore);
     $('#res-reach-val').textContent = v(result.reachScore);
-    $('#res-overall').style.width = f(result.personalScore);
-    $('#res-overall-val').textContent = v(result.personalScore);
+    $('#res-overall').style.width = f(result.overallScore);
+    $('#res-overall-val').textContent = v(result.overallScore);
+    
+    // 难度原因说明
+    if (result.difficultyReason) {
+      const reasonEl = $('#difficulty-reason');
+      if (reasonEl) {
+        reasonEl.textContent = result.difficultyReason;
+        reasonEl.style.display = 'block';
+      }
+    }
 
     const suggestions = [...(result.enhancedSuggestions||[]), ...(result.suggestions||[])].slice(0, 4);
     $('#suggestions-list').innerHTML = suggestions.map(s => `<li style="font-size:13px;color:var(--text-secondary);margin-bottom:4px;line-height:1.5;">• ${s}</li>`).join('');
@@ -216,7 +225,57 @@
       const div = document.createElement('div');
       div.className = 'beta-card';
       div.style.borderLeftColor = i === currentFrame ? 'var(--orange)' : 'var(--border)';
-      div.innerHTML = `<div class="step">🔥 Beta ${step.step||i+1}</div><div class="desc">${step.description}</div><div class="tip">💡 ${step.keyPoint||''}</div>`;
+      div.style.padding = '14px 16px';
+      div.style.marginBottom = '10px';
+      div.style.background = i === currentFrame ? 'var(--wall)' : 'var(--bg-secondary)';
+      div.style.borderRadius = '12px';
+      div.style.borderLeft = `4px solid ${i === currentFrame ? 'var(--orange)' : 'var(--border)'}`;
+      
+      // 构建4维度展示
+      const handIcon = '🤚';
+      const footIcon = '🦶';
+      const hipIcon = '🔴';
+      const bodyIcon = '🧍';
+      
+      const handPos = step.handPosition || step.description || '';
+      const footPos = step.footPosition || '';
+      const hipPos = step.hipAction || '';
+      const bodyPos = step.bodyPosture || '';
+      const keyPt = step.keyPoint || '';
+      
+      div.innerHTML = `
+        <div style="font-size:13px;font-weight:800;margin-bottom:10px;color:var(--orange);">
+          🔥 第${step.step||i+1}步
+        </div>
+        
+        <div style="display:grid;gap:8px;margin-bottom:10px;">
+          ${handPos ? `<div style="display:flex;gap:8px;align-items:flex-start;">
+            <span style="font-size:14px;flex-shrink:0;">${handIcon}</span>
+            <span style="font-size:12.5px;color:var(--text);line-height:1.5;">${handPos}</span>
+          </div>` : ''}
+          
+          ${footPos ? `<div style="display:flex;gap:8px;align-items:flex-start;">
+            <span style="font-size:14px;flex-shrink:0;">${footIcon}</span>
+            <span style="font-size:12.5px;color:var(--text);line-height:1.5;">${footPos}</span>
+          </div>` : ''}
+          
+          ${hipPos ? `<div style="display:flex;gap:8px;align-items:flex-start;">
+            <span style="font-size:14px;flex-shrink:0;">${hipIcon}</span>
+            <span style="font-size:12.5px;color:var(--text);line-height:1.5;">${hipPos}</span>
+          </div>` : ''}
+          
+          ${bodyPos ? `<div style="display:flex;gap:8px;align-items:flex-start;">
+            <span style="font-size:14px;flex-shrink:0;">${bodyIcon}</span>
+            <span style="font-size:12.5px;color:var(--text);line-height:1.5;">${bodyPos}</span>
+          </div>` : ''}
+        </div>
+        
+        ${keyPt ? `<div style="background:var(--orange-light);border-radius:8px;padding:10px 12px;margin-top:6px;">
+          <div style="font-size:11px;font-weight:700;color:var(--orange);margin-bottom:4px;">💡 核心要点</div>
+          <div style="font-size:12.5px;color:var(--text);line-height:1.6;">${keyPt}</div>
+        </div>` : ''}
+      `;
+      
       div.addEventListener('click', () => { currentFrame = i; stickman?.goTo(i); updateFrameUI(); renderBetaCards(beta); });
       container.appendChild(div);
     });
