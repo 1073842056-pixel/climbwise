@@ -145,10 +145,10 @@
       // 知识库增强
       if (window.CLIMBING_KNOWLEDGE) {
         result.enhancedSuggestions = window.CLIMBING_KNOWLEDGE.generateSuggestions({
-          reachScore: (result.reachScore || 5) * 10,
-          strengthScore: (result.strengthScore || 5) * 10,
-          weightScore: (result.weightScore || 5) * 10,
-          flexibilityScore: 60
+          reachScore: result.reachScore || 5,
+          strengthScore: result.strengthScore || 5,
+          weightScore: result.weightScore || 5,
+          flexibilityScore: 6
         });
       }
 
