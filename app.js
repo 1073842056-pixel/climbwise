@@ -259,7 +259,19 @@
     $('#review-start-btn')?.addEventListener('click', startReviewAnalysis);
     $('#review-back')?.addEventListener('click', () => { if (videoDataUrl) URL.revokeObjectURL(videoDataUrl); videoDataUrl = null; currentReviewResult = null; $('#review-result').classList.add('hidden'); $('#review-preview').classList.add('hidden'); $('#review-upload').classList.remove('hidden'); $('#review-link-section').classList.add('hidden'); $('#review-start-btn').classList.add('hidden'); populateReviewRouteSelect(); });
     $('#review-restart')?.addEventListener('click', () => { $('#review-back')?.click(); });
-    $('#save-review-btn')?.addEventListener('click', () => { showToast('分析已保存！'); $('#review-back')?.click(); });
+    $('#save-review-btn')?.addEventListener('click', () => {
+      if (currentReviewResult) {
+        const linkId = $('#review-route-select')?.value;
+        const savedBeta = linkId ? window.ClimbStorage.getRouteCard(linkId) : null;
+        window.ClimbStorage.saveAnalysisRecord({
+          ...currentReviewResult,
+          linkedRouteId: linkId || null,
+          linkedRoute: savedBeta ? { color: savedBeta.color, grade: savedBeta.gradeEquivalent } : null
+        });
+        showToast('分析已保存！');
+      }
+      $('#review-back')?.click();
+    });
     populateReviewRouteSelect();
   }
 
@@ -383,6 +395,38 @@
             ${result.trainingPlan.map(t => `<li style="font-size:13px;color:var(--text-secondary);margin-bottom:6px;line-height:1.5;">📌 ${t}</li>`).join('')}
           </ul>`;
         $('#review-result .app-content')?.appendChild(planDiv);
+      }
+    }
+    
+    // Beta对比（当关联了线路时）
+    const linkId = $('#review-route-select')?.value;
+    if (linkId && savedBeta) {
+      const compareEl = $('#beta-compare');
+      if (!compareEl) {
+        const compareDiv = document.createElement('div');
+        compareDiv.id = 'beta-compare';
+        compareDiv.className = 'card';
+        compareDiv.style.marginBottom = '14px';
+        const optimalMoves = (savedBeta.beta||[]).map(b => b.moveType||'').filter(Boolean);
+        const userMoves = (result.stepScores||[]).map(s => s.moveType||'').filter(Boolean);
+        const matchRate = savedBeta.beta?.length ? Math.round(userMoves.filter(m => optimalMoves.includes(m).length / optimalMoves.length * 100) : 0;
+        compareDiv.innerHTML = `
+          <p style="font-size:13px;font-weight:600;margin-bottom:12px;">⚖️ Beta对比</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+            <div style="background:var(--bg-secondary);padding:12px;border-radius:10px;text-align:center;">
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">你的Beta</div>
+              <div style="font-size:13px;font-weight:700;color:var(--orange);">${userMoves.slice(0,3).join(' → ') || '—'}</div>
+            </div>
+            <div style="background:var(--bg-secondary);padding:12px;border-radius:10px;text-align:center;">
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">最优Beta</div>
+              <div style="font-size:13px;font-weight:700;color:var(--cyan);">${optimalMoves.slice(0,3).join(' → ') || '—'}</div>
+            </div>
+          </div>
+          <div style="text-align:center;padding:8px;background:var(--orange-light);border-radius:10px;">
+            <span style="font-size:13px;color:var(--orange);font-weight:700;">匹配度 ${result.betaMatchRate||'—'}</span>
+          </div>
+        `;
+        $('#review-result .app-content')?.insertBefore(compareDiv, $('#review-result .card'));
       }
     }
 

@@ -109,3 +109,9 @@ stickman.js → SVG火柴人动画（逐帧渲染）
 - video-analysis.js升级：识别动作类型+detectedMoves+trainingPlan
 - app.js新增：识别到的动作展示+训练计划卡片
 - Beta分析新增betaPattern字段
+
+### Round 5 (00:40)
+- Beta对比卡片：用户Beta vs 最优Beta并排展示+匹配度
+- storage.js升级：新增分析记录持久化+训练洞察(weakness分析+周趋势)
+- app.js：赏线保存时写入analysis_records
+- 新增getTrainingInsights()：周趋势/弱点排序/进步计算
