@@ -354,6 +354,38 @@
 
     $('#review-improvements').innerHTML = (result.improvements||[]).map(s => `<li style="font-size:13px;color:var(--text-secondary);margin-bottom:6px;line-height:1.5;">• ${s}</li>`).join('');
 
+    // 识别到的动作类型
+    const movesEl = $('#detected-moves');
+    if (result.detectedMoves?.length) {
+      if (!movesEl) {
+        const movesDiv = document.createElement('div');
+        movesDiv.id = 'detected-moves';
+        movesDiv.className = 'card';
+        movesDiv.style.marginBottom = '14px';
+        movesDiv.innerHTML = `<p style="font-size:13px;font-weight:600;margin-bottom:10px;">🔍 识别到的动作</p>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            ${result.detectedMoves.map(m => `<span style="font-size:13px;padding:4px 12px;background:var(--orange-light);color:var(--orange);border-radius:100px;font-weight:600;">${m}</span>`).join('')}
+          </div>`;
+        $('#review-result .app-content')?.insertBefore(movesDiv, $('#review-result .card'));
+      }
+    }
+    
+    // 训练计划
+    if (result.trainingPlan?.length) {
+      const planEl = $('#training-plan');
+      if (!planEl) {
+        const planDiv = document.createElement('div');
+        planDiv.id = 'training-plan';
+        planDiv.className = 'card';
+        planDiv.style.marginBottom = '14px';
+        planDiv.innerHTML = `<p style="font-size:13px;font-weight:600;margin-bottom:10px;">📋 训练计划</p>
+          <ul style="list-style:none;padding:0;">
+            ${result.trainingPlan.map(t => `<li style="font-size:13px;color:var(--text-secondary);margin-bottom:6px;line-height:1.5;">📌 ${t}</li>`).join('')}
+          </ul>`;
+        $('#review-result .app-content')?.appendChild(planDiv);
+      }
+    }
+
     $('#step-scores').innerHTML = (result.stepScores||[]).map(step => {
       const color = step.score >= 8 ? 'var(--cyan)' : step.score >= 6 ? 'var(--orange)' : '#ef4444';
       return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">

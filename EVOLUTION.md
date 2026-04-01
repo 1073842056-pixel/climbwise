@@ -94,3 +94,18 @@ stickman.js → SVG火柴人动画（逐帧渲染）
 - 完成架构梳理
 - 启动攀岩技术学习
 - 研究优秀App UX设计
+
+### Round 2 (00:10)
+- 知识库knowledge.js：19种动作类型+10种Beta模式+评分算法
+- app.js重构整合28KB
+- 知识库与读线流程集成
+
+### Round 3 (00:20)
+- stickman.js v2：渐变身体+关节圆点+眼睛+发光效果+帧间插值过渡
+- vision.js知识融合：Beta每步含动作类型+风格标签
+- Fallback分析融入专业攀岩术语
+
+### Round 4 (00:30)
+- video-analysis.js升级：识别动作类型+detectedMoves+trainingPlan
+- app.js新增：识别到的动作展示+训练计划卡片
+- Beta分析新增betaPattern字段
