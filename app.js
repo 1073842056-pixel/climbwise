@@ -223,15 +223,6 @@
     
     const startEl = $('#start-desc');
     if (startEl) startEl.textContent = result.startDescription || '—';
-    // 难度原因说明
-    if (result.difficultyReason) {
-      const reasonEl = $('#difficulty-reason');
-      if (reasonEl) {
-        reasonEl.querySelector('p:last-child').textContent = result.difficultyReason;
-        reasonEl.style.display = 'block';
-      }
-    }
-
     const suggestions = [...(result.enhancedSuggestions||[]), ...(result.suggestions||[])].slice(0, 4);
     $('#suggestions-list').innerHTML = suggestions.map(s => `<li style="font-size:13px;color:var(--text-secondary);margin-bottom:4px;line-height:1.5;">• ${s}</li>`).join('');
     showToast('读线完成！');
@@ -243,12 +234,9 @@
     container.innerHTML = '';
     (beta||[]).forEach((step, i) => {
       const div = document.createElement('div');
+      div.className = 'beta-card';
       div.style.borderLeftColor = i === currentFrame ? 'var(--orange)' : 'var(--border)';
-      div.style.padding = '14px 16px';
-      div.style.marginBottom = '10px';
-      div.style.background = i === currentFrame ? 'var(--wall)' : 'var(--bg-secondary)';
-      div.style.borderRadius = '12px';
-      div.style.borderLeft = `5px solid ${i === currentFrame ? 'var(--orange)' : 'var(--border)'}`;
+      div.style.background = i === currentFrame ? 'var(--wall)' : '';
       
       // 步骤标签（判断crux/rest）
       let stepLabel = `第${step.step||i+1}步`;

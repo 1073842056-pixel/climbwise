@@ -141,3 +141,19 @@ stickman.js → SVG火柴人动画（逐帧渲染）
 - 手脚配对格式强化
 - 标注升级:步骤序号+更大发光效果
 - drawHoldsOverlay只显示所选颜色点(其他颜色消除)
+
+### 精读 Round 7 (01:50) - 火柴人步骤高亮
+- 火柴人当前步骤用到的手点脚点高亮(白色边框+外圈)
+- _isInStepHold()距离匹配高亮
+- beta步骤坐标提取驱动姿态
+
+### 精读 Round 8 (02:00) - 读线结果页分层
+- 顶部概览区:难点(cruxDescription)+体感评分+起点说明
+- Beta卡片突出展示(当前步骤高亮)
+- 移除重复的底部难度说明
+- .beta-card CSS类样式继承
+
+### 精读 Round 9 (02:10) - UX最终打磨
+- beta-card使用CSS类样式,移除冗余inline覆盖
+- 概览区cruxText/difficultyReason合并显示
+- 移除底部重复的难度说明元素
