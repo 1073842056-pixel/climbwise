@@ -54,69 +54,76 @@ stickman.js → SVG火柴人动画（逐帧渲染）
 
 ---
 
-## 进化计划
+## 迭代日志（完整版）
 
-### Hour 1: 架构重构 + 白底主题
-- [ ] 拆分app.js为模块化结构
-- [ ] 重写styles.css为白底主题
-- [ ] 重构HTML组件
+### Round 1 (00:00) - 架构梳理 + 白底主题基础
+- 完成架构梳理（5个lib模块）
+- 新建 EVOLUTION.md 进化追踪文档
+- styles.css 白底主题系统 v1 完成
+  - 纯白背景 #ffffff
+  - 橙色强调 (#ff6b35) + 青色辅助 (#00b4a6)
+  - 大圆角卡片 + 柔和阴影
+  - iOS原生字体风格
+- 推送 GitHub Pages
 
-### Hour 2: 攀岩技术理论学习
-- [ ] 学习"攀岩技术图解"知识库
-- [ ] 分析100+条真实beta的特征
-- [ ] 建立beta分类体系（力量型/技术型/柔韧型/综合型）
+### Round 2 (00:10) - 知识库 + app.js 重构
+- 新建 knowledge.js (11.8KB)：19种动作类型+10种Beta模式+评分算法
+  - CLIMBING_KNOWLEDGE 对象：MOVE_TYPES/BETA_PATTERNS/DIFFICULTY_FACTORS/GRADE_CHARACTERISTICS/CLIMBER_STYLES
+  - generateSuggestions() 个性化建议生成器
+  - evaluateRouteMatch() 线路适配度评估
+  - scoreToGrade() 分数转V级
+- app.js 重构整合 28KB
+- knowledge.js 集成到读线流程
+- 推送 GitHub Pages
 
-### Hour 3: 交互体验调研
-- [ ] 学习Netflix/Keep/Strava的UX设计
-- [ ] 学习优秀攀岩App（Rock Prodigy/Crag地牢）
-- [ ] 优化手势交互和动画
+### Round 3 (00:20) - 火柴人 v2 + Vision 知识融合
+- stickman.js 全面升级 v2：
+  - 渐变身体（linearGradient）
+  - 关节圆点（肩/肘/膝）
+  - 眼睛细节
+  - SVG发光滤镜（glow-orange/glow-blue）
+  - 帧间插值平滑过渡
+  - 运动轨迹虚线
+- vision.js 知识融合：
+  - Beta每步含 moveType + style 标签
+  - Fallback含19种动作类型描述
+  - 新增 betaPattern 字段
+- 推送 GitHub Pages
 
-### Hour 4-5: Beta算法强化
-- [ ] 建立动作类型分类（campusing/knees-bar/mantel等）
-- [ ] 建立难度感知系统
-- [ ] 建立针对性建议生成器
+### Round 4 (00:30) - 视频分析升级
+- video-analysis.js 升级：
+  - 新增 detectedMoves 识别动作类型数组
+  - 新增 trainingPlan 个性化训练计划
+  - Fallback含专业动作类型
+- app.js 新增：
+  - 识别到的动作类型标签展示
+  - 训练计划卡片
+  - Beta分析新增 betaPattern
+- 推送 GitHub Pages
 
-### Hour 6-7: 视频分析+火柴人升级
-- [ ] 优化stickman为带骨骼动画的更真实角色
-- [ ] 建立动作对比系统（用户动作 vs 最优beta）
-- [ ] 添加视频片段自动剪辑
-
-### Hour 8: 完整测试+GitHub Pages部署
-- [ ] 完整功能测试
-- [ ] 性能优化
-- [ ] 部署并汇报
-
----
-
-## 迭代日志
-
-### Round 1 (00:00)
-- 完成架构梳理
-- 启动攀岩技术学习
-- 研究优秀App UX设计
-
-### Round 2 (00:10)
-- 知识库knowledge.js：19种动作类型+10种Beta模式+评分算法
-- app.js重构整合28KB
-- 知识库与读线流程集成
-
-### Round 3 (00:20)
-- stickman.js v2：渐变身体+关节圆点+眼睛+发光效果+帧间插值过渡
-- vision.js知识融合：Beta每步含动作类型+风格标签
-- Fallback分析融入专业攀岩术语
-
-### Round 4 (00:30)
-- video-analysis.js升级：识别动作类型+detectedMoves+trainingPlan
-- app.js新增：识别到的动作展示+训练计划卡片
-- Beta分析新增betaPattern字段
-
-### Round 5 (00:40)
-- Beta对比卡片：用户Beta vs 最优Beta并排展示+匹配度
-- storage.js升级：新增分析记录持久化+训练洞察(weakness分析+周趋势)
+### Round 5 (00:40) - Beta对比 + 分析记录持久化
+- Beta对比卡片（新功能）：
+  - 用户Beta vs 最优Beta并排展示
+  - 匹配度百分比
+  - 侧边比较视觉设计
+- storage.js 升级：
+  - 新增 ANALYSIS_RECORDS storage key
+  - saveAnalysisRecord() / getAnalysisRecords()
+  - getTrainingInsights() 计算弱点+周趋势+进步
+  - computeWeeklyImprovement() 本周vs上周对比
 - app.js：赏线保存时写入analysis_records
-- 新增getTrainingInsights()：周趋势/弱点排序/进步计算
+- 推送 GitHub Pages
 
-### Round 6 (00:50)
-- "我的"页面新增训练洞察卡片：7天完攀趋势柱状图+弱点优先级标签+周对比进步箭头
-- updateTrainingInsights()实时计算周趋势和弱点分布
-- switchPage自动刷新训练洞察
+### Round 6 (00:50) - 训练洞察UI
+- "我的"页面新增训练洞察卡片：
+  - 7天完攀趋势柱状图（flex实现）
+  - 弱点优先级标签（核心/换脚/肩部等）
+  - 周对比进步箭头（↑↓→）
+- switchPage 自动刷新训练洞察
+- index.html 新增 training-insights div
+- 推送 GitHub Pages
+
+### Round 7 (00:60) - 最终整理
+- README.md 完整文档
+- 全部推送 GitHub Pages
+- 功能完整性最终检查
