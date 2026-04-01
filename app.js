@@ -1,502 +1,721 @@
-// ===== State =====
-let selectedType = null;
-let selectedResult = null;
-let gradeSystem = 'v';
-let currentPhoto = null;
-let currentLogPhoto = null;
-let currentAnalysis = null;
-let currentFrame = 0;
-let routes = JSON.parse(localStorage.getItem('climbwise_routes') || '[]');
-let chatMessages = JSON.parse(localStorage.getItem('climbwise_chat') || '[]');
+/**
+ * ClimbWise v4 - 乔布斯PPT风格
+ * 四个Tab：读线 / 赏线 / 训练 / 我的
+ */
 
-const V_GRADES = ['V0','V1','V2','V3','V4','V5','V6','V7','V8','V9','V10','V11','V12','V13','V14','V15','V16','V17'];
-const Y_GRADES = ['5.10a','5.10b','5.10c','5.10d','5.11a','5.11b','5.11c','5.11d','5.12a','5.12b','5.12c','5.12d','5.13a','5.13b','5.13c','5.13d','5.14a','5.14b','5.14c','5.14d','5.15a','5.15b','5.15c','5.15d'];
-const GYM_NAMES = { general: '公共聊天室', breek: 'Breek 抱石馆', walltimes: '岩时·壁虎', kailas: 'KAILAS 岩馆' };
-const RESULT_ICONS = { send: '✓', flash: '⚡', onsight: '🎯', fail: '❌' };
-const TYPE_ICONS = { boulder: '🧗', sport: '🏔️', trad: '🧭' };
+(function() {
+  'use strict';
 
-// ===== Utility =====
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.style.opacity = '1';
-  setTimeout(() => t.style.opacity = '0', 2000);
-}
-
-function saveRoutes() {
-  localStorage.setItem('climbwise_routes', JSON.stringify(routes));
-}
-
-function saveChat() {
-  localStorage.setItem('climbwise_chat', JSON.stringify(chatMessages));
-}
-
-function initGradeSelect() {
-  const sel = document.getElementById('gradeSelect');
-  const grades = gradeSystem === 'v' ? V_GRADES : Y_GRADES;
-  sel.innerHTML = grades.map(g => '<option value="' + g + '">' + g + '</option>').join('');
-}
-
-// ===== Tab Navigation =====
-document.querySelectorAll('[data-tab]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const tab = btn.dataset.tab;
-    document.querySelectorAll('.tab-content').forEach(s => s.classList.add('hidden'));
-    document.getElementById('tab-' + tab).classList.remove('hidden');
-    document.querySelectorAll('[data-tab]').forEach(b => b.classList.remove('tab-active'));
-    btn.classList.add('tab-active');
-    if (tab === 'stats') renderStats();
-    if (tab === 'chat') renderChat();
-    updateStreak();
-  });
-});
-
-// ===== Photo Upload - Analyze =====
-const uploadArea = document.getElementById('uploadArea');
-const photoInput = document.getElementById('photoInput');
-
-uploadArea.addEventListener('click', () => photoInput.click());
-uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('drag-over'); });
-uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
-uploadArea.addEventListener('drop', e => {
-  e.preventDefault();
-  uploadArea.classList.remove('drag-over');
-  if (e.dataTransfer.files[0]) handlePhoto(e.dataTransfer.files[0]);
-});
-photoInput.addEventListener('change', e => { if (e.target.files[0]) handlePhoto(e.target.files[0]); });
-
-function handlePhoto(file) {
-  if (file.size > 10 * 1024 * 1024) { showToast('图片太大，请压缩后重试'); return; }
-  currentPhoto = file;
-  const reader = new FileReader();
-  reader.onload = e => {
-    document.getElementById('previewImg').src = e.target.result;
-    document.getElementById('previewArea').classList.remove('hidden');
-    document.getElementById('analyzeBtn').disabled = false;
-    document.getElementById('analyzeResult').classList.add('hidden');
-    document.getElementById('stickmanSection').classList.add('hidden');
-  };
-  reader.readAsDataURL(file);
-}
-
-document.getElementById('clearPhoto').addEventListener('click', () => {
-  currentPhoto = null;
-  document.getElementById('previewArea').classList.add('hidden');
-  document.getElementById('analyzeBtn').disabled = true;
-  document.getElementById('analyzeResult').classList.add('hidden');
-  document.getElementById('stickmanSection').classList.add('hidden');
-});
-
-// ===== Analyze Button =====
-document.getElementById('analyzeBtn').addEventListener('click', async () => {
-  if (!currentPhoto) return;
+  // ===== 全局状态 =====
+  let currentPage = 'read';
+  let selectedColor = null;
+  let photoDataUrl = null;
+  let analysisResult = null;
+  let stickman = null;
+  let currentFrame = 0;
+  let videoDataUrl = null;
+  let currentReviewResult = null;
+  let currentClassifyVideo = null;
+  let unclassifiedVideos = [];
+  let currentCalDate = new Date();
   
-  const btn = document.getElementById('analyzeBtn');
-  const loading = document.getElementById('analyzeLoading');
-  const result = document.getElementById('analyzeResult');
-  
-  btn.disabled = true;
-  loading.classList.remove('hidden');
-  result.classList.add('hidden');
-  
-  try {
-    const reader = new FileReader();
-    const imageBase64 = await new Promise(resolve => {
-      reader.onload = e => resolve(e.target.result);
-      reader.readAsDataURL(currentPhoto);
+  // ===== DOM =====
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => document.querySelectorAll(s);
+
+  // ===== 初始化 =====
+  function init() {
+    initNav();
+    initReadPage();
+    initReviewPage();
+    initTrainPage();
+    initProfilePage();
+    loadProfileData();
+    updateTrainSummary();
+    updateCalendar();
+    updateGymList();
+    updateSavedRoutes();
+  }
+
+  // ===== 导航 =====
+  function initNav() {
+    $$('.tab-nav-item').forEach(btn => {
+      btn.addEventListener('click', () => switchPage(btn.dataset.page));
     });
+  }
+
+  function switchPage(page) {
+    currentPage = page;
+    $$('.page').forEach(p => p.classList.remove('active'));
+    $('#page-' + page).classList.add('active');
+    $$('.tab-nav-item').forEach(b => b.classList.toggle('active', b.dataset.page === page));
+    if (page === 'train') { updateTrainSummary(); updateTrainHistory(); }
+    if (page === 'profile') { loadProfileData(); updateCalendar(); updateGymList(); updateSavedRoutes(); }
+  }
+
+  // ===== Tab1: 读线 =====
+  function initReadPage() {
+    const photoInput = $('#read-photo-input');
+    const uploadZone = $('#read-upload');
     
-    currentAnalysis = await analyzeRoute(imageBase64);
+    uploadZone.addEventListener('click', () => photoInput.click());
+    uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.style.borderColor = 'var(--orange)'; });
+    uploadZone.addEventListener('dragleave', () => { uploadZone.style.borderColor = ''; });
+    uploadZone.addEventListener('drop', e => {
+      e.preventDefault();
+      uploadZone.style.borderColor = '';
+      const f = e.dataTransfer.files[0];
+      if (f && f.type.startsWith('image/')) handleReadPhoto(f);
+    });
+    photoInput.addEventListener('change', () => {
+      if (photoInput.files[0]) handleReadPhoto(photoInput.files[0]);
+    });
+
+    $('#read-clear')?.addEventListener('click', () => {
+      photoDataUrl = null; selectedColor = null;
+      $('#read-preview').classList.add('hidden');
+      $('#read-colors').classList.add('hidden');
+      $('#read-scores').classList.add('hidden');
+      $('#read-start-btn').classList.add('hidden');
+      $('#read-upload').classList.remove('hidden');
+      $$('.color-dot').forEach(d => d.classList.remove('selected'));
+    });
+
+    initColorGrid($('#color-grid'), (color) => {
+      selectedColor = color;
+      const btn = $('#read-start-btn');
+      btn.disabled = !(photoDataUrl && selectedColor);
+    });
+
+    $('#read-start-btn')?.addEventListener('click', startReadAnalysis);
+    $('#read-back')?.addEventListener('click', () => showReadUpload());
+    $('#read-restart')?.addEventListener('click', () => showReadUpload());
+    $('#save-route-btn')?.addEventListener('click', () => { showToast('已保存！'); });
+    $('#prev-frame')?.addEventListener('click', () => changeFrame(-1));
+    $('#next-frame')?.addEventListener('click', () => changeFrame(1));
+    $('#frame-slider')?.addEventListener('input', e => {
+      currentFrame = parseInt(e.target.value);
+      stickman?.goTo(currentFrame);
+      updateFrameUI();
+    });
+  }
+
+  function handleReadPhoto(file) {
+    if (file.size > 10 * 1024 * 1024) { showToast('图片最大10MB'); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      photoDataUrl = e.target.result;
+      $('#read-preview-img').src = photoDataUrl;
+      $('#read-upload').classList.add('hidden');
+      $('#read-preview').classList.remove('hidden');
+      $('#read-colors').classList.remove('hidden');
+      $('#read-start-btn').classList.remove('hidden');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function startReadAnalysis() {
+    if (!photoDataUrl || !selectedColor) return;
+    const profile = window.ClimbStorage.getProfile();
+    showReadLoading(true);
+    updateReadDots(0);
+    try {
+      updateReadStatus('正在识别手点脚点...', 20);
+      const result = await window.ClimbVision.analyzeRoute(photoDataUrl, selectedColor, profile);
+      analysisResult = result;
+      updateReadStatus('正在生成个性化beta...', 55);
+      updateReadDots(1);
+      updateReadStatus('正在渲染火柴人动画...', 80);
+      updateReadDots(2);
+      window.ClimbStorage.saveRouteCard({
+        photo: photoDataUrl, color: selectedColor,
+        holds: result.holds, beta: result.beta, frames: result.frames,
+        personalScore: result.personalScore, gradeEquivalent: result.subjectiveGrade,
+        reachScore: result.reachScore, strengthScore: result.strengthScore,
+        weightScore: result.weightScore, suggestions: result.suggestions,
+        difficultyPoints: result.difficultyPoints, estimatedAttempts: result.estimatedAttempts
+      });
+      updateReadStatus('完成！', 100);
+      updateReadDots(3);
+      await sleep(600);
+      showReadResult(result);
+    } catch(e) {
+      console.error(e);
+      showToast('分析失败，请重试');
+      showReadUpload();
+    }
+  }
+
+  function showReadLoading(show) {
+    $('#read-preview').classList.toggle('hidden', show);
+    $('#read-colors').classList.toggle('hidden', show);
+    $('#read-start-btn').classList.toggle('hidden', show);
+    $('#read-loading').classList.toggle('hidden', !show);
+    $('#read-result').classList.add('hidden');
+  }
+
+  function showReadUpload() {
+    photoDataUrl = null; selectedColor = null;
+    analysisResult = null;
+    $('#read-result').classList.add('hidden');
+    $('#read-preview').classList.add('hidden');
+    $('#read-colors').classList.add('hidden');
+    $('#read-start-btn').classList.add('hidden');
+    $('#read-upload').classList.remove('hidden');
+    $$('.color-dot').forEach(d => { d.classList.remove('selected'); d.style.opacity = '0.4'; });
+    $('#read-photo-input').value = '';
+  }
+
+  function updateReadStatus(text, pct) {
+    const s = $('#read-status');
+    const b = $('#read-bar');
+    if (s) s.textContent = text;
+    if (b) b.style.width = pct + '%';
+  }
+
+  function updateReadDots(step) {
+    $$('#read-dots .dot').forEach((d, i) => {
+      d.classList.remove('active', 'done');
+      if (i < step) d.classList.add('done');
+      else if (i === step) d.classList.add('active');
+    });
+  }
+
+  function showReadResult(result) {
+    $('#read-loading').classList.add('hidden');
+    $('#read-result').classList.remove('hidden');
+    $('#result-wall-img').src = photoDataUrl;
+    $('#read-grade-badge').textContent = result.subjectiveGrade || 'V3-4';
+    
+    const svgEl = $('#result-stickman-svg');
+    const imgEl = $('#result-wall-img');
+    stickman = new window.ClimbStickman.StickmanRenderer(svgEl, imgEl);
+    stickman.setFrames(result.frames);
+    
+    const slider = $('#frame-slider');
+    slider.max = result.frames.length - 1;
+    slider.value = 0;
     currentFrame = 0;
+    updateFrameUI();
+    stickman.goTo(0);
     
-    document.getElementById('handHolds').innerHTML = currentAnalysis.handHolds.map(h => '<li class="fade-in">• ' + h + '</li>').join('');
-    document.getElementById('footHolds').innerHTML = currentAnalysis.footHolds.map(f => '<li class="fade-in">• ' + f + '</li>').join('');
+    renderBetaCards(result.beta);
     
-    document.getElementById('betaSequence').innerHTML = currentAnalysis.beta.map(b => 
-      '<div class="bg-slate-800 rounded-lg p-3 fade-in">' +
-        '<div class="flex items-center gap-2 mb-1"><span class="bg-accent text-white text-xs px-2 py-0.5 rounded-full">步 ' + b.step + '</span></div>' +
-        '<p class="text-sm">' + b.description + '</p>' +
-        '<p class="text-xs text-accent mt-1">💡 ' + b.key + '</p>' +
-      '</div>'
-    ).join('');
+    const f = p => Math.min(100, Math.max(0, p)) + '%';
+    $('#res-strength').style.width = f((result.strengthScore||0)*10);
+    $('#res-strength-val').textContent = result.strengthScore ? result.strengthScore.toFixed(1) : '—';
+    $('#res-reach').style.width = f((result.reachScore||0)*10);
+    $('#res-reach-val').textContent = result.reachScore ? result.reachScore.toFixed(1) : '—';
+    $('#res-overall').style.width = f((result.personalScore||0)*10);
+    $('#res-overall-val').textContent = result.personalScore ? result.personalScore.toFixed(1) : '—';
     
-    if (currentAnalysis.stickmanFrames && currentAnalysis.stickmanFrames.length > 0) {
-      document.getElementById('stickmanBg').src = document.getElementById('previewImg').src;
-      document.getElementById('stickmanSection').classList.remove('hidden');
-      renderStickman();
-    }
-    
-    result.classList.remove('hidden');
-    showToast('分析完成！');
-    
-  } catch (e) {
-    console.error(e);
-    showToast('分析失败，请重试');
-  } finally {
-    btn.disabled = false;
-    loading.classList.add('hidden');
+    const sugList = $('#suggestions-list');
+    sugList.innerHTML = (result.suggestions||[]).map(s => `<li style="font-size:13px;color:var(--text-muted);margin-bottom:4px;">• ${s}</li>`).join('');
+    showToast('读线完成！');
   }
-});
 
-// ===== Stickman Animation =====
-function renderStickman() {
-  if (!currentAnalysis || !currentAnalysis.stickmanFrames) return;
-  const frames = currentAnalysis.stickmanFrames;
-  const frame = frames[currentFrame];
-  const svg = document.getElementById('stickmanSvg');
-  const totalFrames = frames.length;
-  
-  document.getElementById('frameCounter').textContent = (currentFrame + 1) + '/' + totalFrames;
-  document.getElementById('frameHint').textContent = currentAnalysis.beta[currentFrame]?.description || '';
-  
-  let d = '';
-  // Head
-  d += '<circle cx="' + frame.head.cx + '" cy="' + frame.head.cy + '" r="' + frame.head.r + '" fill="#f97316" stroke="#f97316" stroke-width="2"/>';
-  // Body
-  d += '<line x1="' + frame.head.cx + '" y1="' + (frame.head.cy + frame.head.r) + '" x2="' + frame.hip.x + '" y2="' + frame.hip.y + '" stroke="#f97316" stroke-width="3" stroke-linecap="round"/>';
-  // Left Arm
-  d += '<line x1="' + frame.hip.x + '" y1="' + (frame.hip.y - 10) + '" x2="' + frame.leftArm.elbow.x + '" y2="' + frame.leftArm.elbow.y + '" stroke="#f97316" stroke-width="3" stroke-linecap="round"/>';
-  d += '<line x1="' + frame.leftArm.elbow.x + '" y1="' + frame.leftArm.elbow.y + '" x2="' + frame.leftArm.hand.x + '" y2="' + frame.leftArm.hand.y + '" stroke="#f97316" stroke-width="3" stroke-linecap="round"/>';
-  d += '<circle cx="' + frame.leftArm.hand.x + '" cy="' + frame.leftArm.hand.y + '" r="6" fill="#38bdf8"/>';
-  // Right Arm
-  d += '<line x1="' + frame.hip.x + '" y1="' + (frame.hip.y - 10) + '" x2="' + frame.rightArm.elbow.x + '" y2="' + frame.rightArm.elbow.y + '" stroke="#f97316" stroke-width="3" stroke-linecap="round"/>';
-  d += '<line x1="' + frame.rightArm.elbow.x + '" y1="' + frame.rightArm.elbow.y + '" x2="' + frame.rightArm.hand.x + '" y2="' + frame.rightArm.hand.y + '" stroke="#f97316" stroke-width="3" stroke-linecap="round"/>';
-  d += '<circle cx="' + frame.rightArm.hand.x + '" cy="' + frame.rightArm.hand.y + '" r="6" fill="#38bdf8"/>';
-  // Left Leg
-  d += '<line x1="' + frame.hip.x + '" y1="' + frame.hip.y + '" x2="' + frame.leftLeg.knee.x + '" y2="' + frame.leftLeg.knee.y + '" stroke="#f97316" stroke-width="3" stroke-linecap="round"/>';
-  d += '<line x1="' + frame.leftLeg.knee.x + '" y1="' + frame.leftLeg.knee.y + '" x2="' + frame.leftLeg.foot.x + '" y2="' + frame.leftLeg.foot.y + '" stroke="#f97316" stroke-width="3" stroke-linecap="round"/>';
-  d += '<circle cx="' + frame.leftLeg.foot.x + '" cy="' + frame.leftLeg.foot.y + '" r="5" fill="#22c55e"/>';
-  // Right Leg
-  d += '<line x1="' + frame.hip.x + '" y1="' + frame.hip.y + '" x2="' + frame.rightLeg.knee.x + '" y2="' + frame.rightLeg.knee.y + '" stroke="#f97316" stroke-width="3" stroke-linecap="round"/>';
-  d += '<line x1="' + frame.rightLeg.knee.x + '" y1="' + frame.rightLeg.knee.y + '" x2="' + frame.rightLeg.foot.x + '" y2="' + frame.rightLeg.foot.y + '" stroke="#f97316" stroke-width="3" stroke-linecap="round"/>';
-  d += '<circle cx="' + frame.rightLeg.foot.x + '" cy="' + frame.rightLeg.foot.y + '" r="5" fill="#22c55e"/>';
-  
-  svg.innerHTML = d;
-}
-
-document.getElementById('prevFrame').addEventListener('click', () => {
-  if (!currentAnalysis) return;
-  const total = currentAnalysis.stickmanFrames?.length || 0;
-  currentFrame = (currentFrame - 1 + total) % total;
-  renderStickman();
-});
-
-document.getElementById('nextFrame').addEventListener('click', () => {
-  if (!currentAnalysis) return;
-  const total = currentAnalysis.stickmanFrames?.length || 0;
-  currentFrame = (currentFrame + 1) % total;
-  renderStickman();
-});
-
-// ===== Route Logging =====
-document.querySelectorAll('.type-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
-    selectedType = btn.dataset.type;
-  });
-});
-
-document.querySelectorAll('.result-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.result-btn').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
-    selectedResult = btn.dataset.result;
-  });
-});
-
-document.getElementById('gradeV').addEventListener('click', () => {
-  gradeSystem = 'v';
-  document.getElementById('gradeV').classList.add('bg-primary', 'text-wall');
-  document.getElementById('gradeV').classList.remove('text-textMuted');
-  document.getElementById('gradeY').classList.remove('bg-primary', 'text-wall');
-  document.getElementById('gradeY').classList.add('text-textMuted');
-  initGradeSelect();
-});
-
-document.getElementById('gradeY').addEventListener('click', () => {
-  gradeSystem = 'y';
-  document.getElementById('gradeY').classList.add('bg-primary', 'text-wall');
-  document.getElementById('gradeY').classList.remove('text-textMuted');
-  document.getElementById('gradeV').classList.remove('bg-primary', 'text-wall');
-  document.getElementById('gradeV').classList.add('text-textMuted');
-  initGradeSelect();
-});
-
-// Log photo upload
-const logUploadArea = document.getElementById('logUploadArea');
-const logPhotoInput = document.getElementById('logPhotoInput');
-
-logUploadArea.addEventListener('click', () => logPhotoInput.click());
-logPhotoInput.addEventListener('change', e => {
-  if (e.target.files[0]) {
-    currentLogPhoto = e.target.files[0];
-    const reader = new FileReader();
-    reader.onload = ev => {
-      document.getElementById('logPhotoImg').src = ev.target.result;
-      document.getElementById('logPhotoPreview').classList.remove('hidden');
-    };
-    reader.readAsDataURL(currentLogPhoto);
-  }
-});
-
-// Submit log
-document.getElementById('submitLog').addEventListener('click', async () => {
-  const gymName = document.getElementById('gymName').value.trim();
-  if (!gymName) { showToast('请输入岩馆名称'); return; }
-  if (!selectedResult) { showToast('请选择完成结果'); return; }
-  
-  const grade = document.getElementById('gradeSelect').value;
-  let photoData = null;
-  
-  if (currentLogPhoto) {
-    const reader = new FileReader();
-    photoData = await new Promise(resolve => {
-      reader.onload = e => resolve(e.target.result);
-      reader.readAsDataURL(currentLogPhoto);
+  function renderBetaCards(beta) {
+    const container = $('#beta-cards');
+    container.innerHTML = '';
+    (beta||[]).forEach((step, i) => {
+      const isActive = i === currentFrame;
+      const div = document.createElement('div');
+      div.className = 'beta-card';
+      div.style.borderLeftColor = isActive ? 'var(--orange)' : 'var(--text-dim)';
+      div.innerHTML = `<div class="step">🔥 Beta ${step.step||i+1}</div><div class="desc">${step.description}</div><div class="tip">💡 ${step.keyPoint||''}</div>`;
+      div.addEventListener('click', () => {
+        currentFrame = i;
+        stickman?.goTo(i);
+        updateFrameUI();
+        renderBetaCards(beta);
+      });
+      container.appendChild(div);
     });
   }
-  
-  const route = {
-    id: Date.now(),
-    gym: gymName,
-    routeName: document.getElementById('routeName').value.trim(),
-    type: selectedType || 'boulder',
-    grade: grade,
-    gradeSystem: gradeSystem,
-    result: selectedResult,
-    photo: photoData,
-    notes: document.getElementById('routeNotes').value.trim(),
-    wantAiFeedback: document.getElementById('wantAiFeedback').checked,
-    date: new Date().toISOString()
+
+  function updateFrameUI() {
+    const beta = analysisResult?.beta||[];
+    const slider = $('#frame-slider');
+    const frameCount = analysisResult?.frames?.length||1;
+    slider.value = currentFrame;
+    $('#frame-counter').textContent = `${currentFrame+1}/${frameCount}`;
+  }
+
+  function changeFrame(dir) {
+    const max = (analysisResult?.frames?.length||1) - 1;
+    const next = Math.max(0, Math.min(max, currentFrame + dir));
+    if (next !== currentFrame) {
+      currentFrame = next;
+      stickman?.goTo(currentFrame);
+      updateFrameUI();
+      renderBetaCards(analysisResult?.beta);
+    }
+  }
+
+  // ===== Tab2: 赏线 =====
+  function initReviewPage() {
+    const videoInput = $('#review-video-input');
+    const uploadZone = $('#review-upload');
+    
+    uploadZone.addEventListener('click', () => videoInput.click());
+    videoInput.addEventListener('change', () => {
+      const f = videoInput.files[0];
+      if (f) handleReviewVideo(f);
+    });
+    
+    $('#review-clear')?.addEventListener('click', () => {
+      if (videoDataUrl) URL.revokeObjectURL(videoDataUrl);
+      videoDataUrl = null;
+      $('#review-preview').classList.add('hidden');
+      $('#review-upload').classList.remove('hidden');
+      $('#review-link-section').classList.add('hidden');
+      $('#review-start-btn').classList.add('hidden');
+      videoInput.value = '';
+    });
+    
+    $('#review-start-btn')?.addEventListener('click', startReviewAnalysis);
+    $('#review-back')?.addEventListener('click', showReviewUpload);
+    $('#review-restart')?.addEventListener('click', showReviewUpload);
+    $('#save-review-btn')?.addEventListener('click', () => { showToast('分析已保存！'); showReviewUpload(); });
+    
+    populateReviewRouteSelect();
+  }
+
+  function handleReviewVideo(file) {
+    if (file.size > 100*1024*1024) { showToast('视频最大100MB'); return; }
+    videoDataUrl = URL.createObjectURL(file);
+    $('#review-video-el').src = videoDataUrl;
+    $('#review-upload').classList.add('hidden');
+    $('#review-preview').classList.remove('hidden');
+    $('#review-link-section').classList.remove('hidden');
+    $('#review-start-btn').classList.remove('hidden');
+    $('#review-start-btn').disabled = false;
+  }
+
+  function populateReviewRouteSelect() {
+    const select = $('#review-route-select');
+    const cards = window.ClimbStorage.getRouteCards();
+    select.innerHTML = '<option value="">— 不关联线路 —</option>' +
+      cards.map(c => `<option value="${c.id}">${c.color}线路 · ${c.gradeEquivalent||''}</option>`).join('');
+  }
+
+  async function startReviewAnalysis() {
+    if (!videoDataUrl) return;
+    showReviewLoading(true);
+    updateReviewDots(0);
+    try {
+      updateReviewStatus('正在提取视频帧...', 15);
+      const frames = await window.ClimbVideoAnalysis.extractFrames(videoDataUrl, 8);
+      updateReviewStatus('正在识别有效片段...', 30);
+      updateReviewDots(1);
+      const segment = await window.ClimbVideoAnalysis.detectClimbingSegment(videoDataUrl);
+      const linkId = $('#review-route-select')?.value;
+      const savedBeta = linkId ? window.ClimbStorage.getRouteCard(linkId) : null;
+      updateReviewStatus('正在分析动作质量...', 50);
+      updateReviewDots(2);
+      const profile = window.ClimbStorage.getProfile();
+      const result = await window.ClimbVideoAnalysis.analyzeClimbingAction(frames, savedBeta, profile);
+      result.segment = segment;
+      result.frames = frames;
+      currentReviewResult = result;
+      updateReviewStatus('正在生成报告...', 80);
+      updateReviewDots(3);
+      await sleep(400);
+      updateReviewDots(4);
+      showReviewResult(result);
+    } catch(e) {
+      console.error(e);
+      showToast('分析失败，请重试');
+      showReviewUpload();
+    }
+  }
+
+  function showReviewLoading(show) {
+    $('#review-preview').classList.toggle('hidden', show);
+    $('#review-start-btn').classList.toggle('hidden', show);
+    $('#review-link-section').classList.toggle('hidden', show);
+    $('#review-loading').classList.toggle('hidden', !show);
+    $('#review-result').classList.add('hidden');
+  }
+
+  function showReviewUpload() {
+    if (videoDataUrl) { URL.revokeObjectURL(videoDataUrl); videoDataUrl = null; }
+    currentReviewResult = null;
+    $('#review-result').classList.add('hidden');
+    $('#review-preview').classList.add('hidden');
+    $('#review-upload').classList.remove('hidden');
+    $('#review-link-section').classList.add('hidden');
+    $('#review-start-btn').classList.add('hidden');
+    $('#review-video-input').value = '';
+    populateReviewRouteSelect();
+  }
+
+  function updateReviewStatus(text, pct) {
+    const s = $('#review-status');
+    const b = $('#review-bar');
+    if (s) s.textContent = text;
+    if (b) b.style.width = pct + '%';
+  }
+
+  function updateReviewDots(step) {
+    $$('#review-dots .dot').forEach((d, i) => {
+      d.classList.remove('active', 'done');
+      if (i < step) d.classList.add('done');
+      else if (i === step) d.classList.add('active');
+    });
+  }
+
+  function showReviewResult(result) {
+    $('#review-loading').classList.add('hidden');
+    $('#review-result').classList.remove('hidden');
+    const score = result.overallScore || 7.0;
+    $('#review-score-badge').textContent = score.toFixed(1) + '分';
+    $('#overall-score-circle').textContent = score.toFixed(1);
+    $('#beta-match-rate').textContent = result.betaMatchRate || '—';
+    if (result.detectedBeta) $('#detected-beta-text').textContent = `你走的是 ${result.detectedBeta}`;
+    renderFrameTimeline(result.frames||[]);
+    
+    const issuesEl = $('#review-issues');
+    if (result.mainIssues?.length) {
+      issuesEl.innerHTML = result.mainIssues.map(issue => `<div class="issue-card"><span class="icon">⚠️</span><p>${issue}</p></div>`).join('');
+    } else {
+      issuesEl.innerHTML = '<p style="font-size:14px;color:var(--text-muted);padding:8px 0;">动作整体不错！</p>';
+    }
+    
+    const impEl = $('#review-improvements');
+    impEl.innerHTML = (result.improvements||[]).map(s => `<li style="font-size:13px;color:var(--text-muted);margin-bottom:6px;">• ${s}</li>`).join('');
+    
+    const stepEl = $('#step-scores');
+    stepEl.innerHTML = (result.stepScores||[]).map(step => {
+      const color = step.score >= 8 ? 'var(--cyan)' : step.score >= 6 ? 'var(--orange)' : '#ef4444';
+      return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <span style="font-size:12px;color:var(--text-muted);width:60px;flex-shrink:0;">第${step.step}步</span>
+        <div style="flex:1;height:6px;background:var(--wall);border-radius:3px;overflow:hidden;">
+          <div style="height:100%;width:${(step.score||5)*10}%;background:${color};border-radius:3px;"></div>
+        </div>
+        <span style="font-size:13px;font-weight:700;width:36px;text-align:right;">${(step.score||5).toFixed(1)}</span>
+      </div>`;
+    }).join('');
+    showToast('赏线完成！');
+  }
+
+  function renderFrameTimeline(frames) {
+    const container = $('#frame-timeline');
+    container.innerHTML = '';
+    const displayFrames = (frames||[]).slice(0, 5);
+    displayFrames.forEach((f, i) => {
+      const div = document.createElement('div');
+      div.className = 'frame-thumb' + (i === 0 ? ' active' : '');
+      div.innerHTML = `<img src="${f}" alt="帧${i+1}">`;
+      div.addEventListener('click', () => {
+        $$('.frame-thumb').forEach(t => t.classList.remove('active'));
+        div.classList.add('active');
+      });
+      container.appendChild(div);
+    });
+  }
+
+  // ===== Tab3: 训练 =====
+  function initTrainPage() {
+    const videoInput = $('#train-video-input');
+    const uploadZone = $('#train-upload');
+    
+    uploadZone.addEventListener('click', () => videoInput.click());
+    videoInput.addEventListener('change', () => {
+      const files = Array.from(videoInput.files).filter(f => f.type.startsWith('video/'));
+      if (files.length) files.forEach(f => {
+        const url = URL.createObjectURL(f);
+        unclassifiedVideos.push({ url, blob: f, name: f.name });
+      });
+      renderUnclassifiedList();
+    });
+    
+    $('#add-train-btn')?.addEventListener('click', () => videoInput.click());
+    $('#cancel-classify-btn')?.addEventListener('click', hideClassifyModal);
+    $('#confirm-classify-btn')?.addEventListener('click', confirmClassify);
+    
+    $$('.select-pill[data-result]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        $$('.select-pill[data-result]').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+      });
+    });
+    
+    initColorGrid($('#classify-colors'), () => {});
+  }
+
+  window.openClassifyModal = function(index) {
+    currentClassifyVideo = unclassifiedVideos[index];
+    if (!currentClassifyVideo) return;
+    $('#classify-video-el').src = currentClassifyVideo.url;
+    $$('.select-pill[data-result]').forEach(b => b.classList.remove('selected'));
+    $('#classify-grade').value = '';
+    $('#classify-gym').value = '';
+    $('#classify-modal').classList.add('show');
   };
-  
-  routes.unshift(route);
-  saveRoutes();
-  
-  if (route.wantAiFeedback && route.notes) {
-    const feedback = await getFeedback(route.notes);
-    route.aiFeedback = feedback;
-    saveRoutes();
-  }
-  
-  // Reset form
-  document.getElementById('gymName').value = '';
-  document.getElementById('routeName').value = '';
-  document.getElementById('routeNotes').value = '';
-  document.getElementById('wantAiFeedback').checked = false;
-  document.getElementById('logPhotoPreview').classList.add('hidden');
-  currentLogPhoto = null;
-  selectedType = null;
-  selectedResult = null;
-  document.querySelectorAll('.type-btn, .result-btn').forEach(b => b.classList.remove('selected'));
-  
-  showToast('记录已保存！');
-  updateStreak();
-});
 
-// ===== Statistics =====
-function updateStreak() {
-  if (routes.length === 0) {
-    document.getElementById('streakBadge').textContent = '';
-    return;
+  function hideClassifyModal() {
+    $('#classify-modal').classList.remove('show');
+    currentClassifyVideo = null;
   }
-  
-  const sends = routes.filter(r => r.result === 'send');
-  if (sends.length === 0) {
-    document.getElementById('streakBadge').textContent = '';
-    return;
-  }
-  
-  // Calculate streak
-  let streak = 0;
-  const today = new Date().toDateString();
-  const sortedDates = [...new Set(routes.filter(r => r.result === 'send').map(r => new Date(r.date).toDateString()))].sort((a, b) => new Date(b) - new Date(a));
-  
-  for (let i = 0; i < sortedDates.length; i++) {
-    const d = new Date(sortedDates[i]);
-    const expected = new Date();
-    expected.setDate(expected.getDate() - i);
-    if (d.toDateString() === expected.toDateString()) {
-      streak++;
-    } else {
-      break;
-    }
-  }
-  
-  if (streak > 0) {
-    document.getElementById('streakBadge').textContent = '🔥 ' + streak + '天';
-  }
-}
 
-function renderStats() {
-  const total = routes.length;
-  const sends = routes.filter(r => r.result === 'send').length;
-  const flashes = routes.filter(r => r.result === 'flash').length;
-  const onsights = routes.filter(r => r.result === 'onsight').length;
-  
-  document.getElementById('totalRoutes').textContent = total;
-  document.getElementById('sendRate').textContent = total > 0 ? Math.round(sends / total * 100) + '%' : '0%';
-  document.getElementById('flashRate').textContent = total > 0 ? Math.round(flashes / total * 100) + '%' : '0%';
-  
-  // Streak
-  let streak = 0;
-  const sortedDates = [...new Set(routes.filter(r => r.result === 'send').map(r => new Date(r.date).toDateString()))].sort((a, b) => new Date(b) - new Date(a));
-  for (let i = 0; i < sortedDates.length; i++) {
-    const d = new Date(sortedDates[i]);
-    const expected = new Date();
-    expected.setDate(expected.getDate() - i);
-    if (d.toDateString() === expected.toDateString()) {
-      streak++;
-    } else {
-      break;
+  function confirmClassify() {
+    if (!currentClassifyVideo) return;
+    const selectedResult = $('.select-pill[data-result].selected')?.dataset.result;
+    const grade = $('#classify-grade')?.value;
+    const gymName = $('#classify-gym')?.value?.trim();
+    let gym = null;
+    if (gymName) {
+      gym = window.ClimbStorage.getGyms().find(g => g.name === gymName);
+      if (!gym) gym = window.ClimbStorage.saveGym({ name: gymName });
     }
+    window.ClimbStorage.saveGymLog({
+      gymId: gym?.id||'', gymName: gymName||'未知岩馆',
+      routeName: '', type: 'boulder', grade: grade||'V?',
+      result: selectedResult||'attempt', photo: null, notes: '',
+      attempts: selectedResult === 'send' ? 1 : 3,
+      videoUrl: currentClassifyVideo.url
+    });
+    const idx = unclassifiedVideos.indexOf(currentClassifyVideo);
+    if (idx >= 0) unclassifiedVideos.splice(idx, 1);
+    hideClassifyModal();
+    renderUnclassifiedList();
+    updateTrainSummary();
+    updateTrainHistory();
+    showToast('归类成功！');
   }
-  document.getElementById('currentStreak').textContent = streak;
-  
-  // Grade distribution (V grades only)
-  const gradeCount = {};
-  routes.forEach(r => {
-    if (r.gradeSystem === 'v') {
-      gradeCount[r.grade] = (gradeCount[r.grade] || 0) + 1;
+
+  function renderUnclassifiedList() {
+    const container = $('#unclassified-list');
+    if (!unclassifiedVideos.length) { container.classList.add('hidden'); return; }
+    container.classList.remove('hidden');
+    $('#unclassified-count').textContent = unclassifiedVideos.length;
+    $('#unclassified-items').innerHTML = unclassifiedVideos.map((v, i) => `
+      <div class="log-item">
+        <div class="gym-icon">📹</div>
+        <div class="info"><h4>${v.name||'视频 '+(i+1)}</h4><p>待归类</p></div>
+        <button class="select-pill" style="font-size:12px;padding:6px 12px;border-color:var(--orange);color:var(--orange);" onclick="openClassifyModal(${i})">归类</button>
+      </div>`).join('');
+  }
+
+  function updateTrainSummary() {
+    const today = new Date().toDateString();
+    const logs = window.ClimbStorage.getGymLogs().filter(l => new Date(l.createdAt).toDateString() === today);
+    if (!logs.length) {
+      $('#today-summary').style.display = 'none';
+      $('#train-subtitle').textContent = '今日暂无训练记录';
+      return;
     }
-  });
-  
-  const maxCount = Math.max(...Object.values(gradeCount), 1);
-  const gradeChart = document.getElementById('gradeChart');
-  
-  if (Object.keys(gradeCount).length === 0) {
-    gradeChart.innerHTML = '<p class="text-xs text-textMuted">暂无数据</p>';
-  } else {
-    gradeChart.innerHTML = V_GRADES.map(g => {
-      const count = gradeCount[g] || 0;
-      const pct = (count / maxCount * 100).toFixed(0);
-      return '<div class="flex items-center gap-2">' +
-        '<span class="text-xs w-8 text-textMuted">' + g + '</span>' +
-        '<div class="stat-bar flex-1">' +
-          '<div class="stat-fill" style="width:' + pct + '%"></div>' +
-        '</div>' +
-        '<span class="text-xs w-4 text-right">' + count + '</span>' +
-      '</div>';
+    $('#train-subtitle').textContent = `今日 ${logs.length} 条记录`;
+    $('#today-summary').style.display = 'block';
+    const sends = logs.filter(l => l.result === 'send').length;
+    const gymName = logs[0]?.gymName || '未知岩馆';
+    const d = new Date();
+    $('#today-date').textContent = `${d.getMonth()+1}月${d.getDate()}日`;
+    $('#today-gym').textContent = gymName;
+    $('#today-count').textContent = sends;
+    const grades = [...new Set(logs.map(l => l.grade))].slice(0, 6);
+    const colors = { send: '#22c55e', flash: '#eab308', attempt: 'var(--orange)' };
+    $('#today-grid').innerHTML = grades.map(g => {
+      const count = logs.filter(l => l.grade === g).length;
+      const color = colors[logs.find(l => l.grade === g)?.result] || 'var(--text-dim)';
+      return `<div class="classify-cell">
+        <div class="color-preview" style="background:${color};opacity:0.7;"></div>
+        <span class="grade">${g}</span>
+        <span class="count">${count}次</span>
+      </div>`;
     }).join('');
   }
-  
-  // Recent logs
-  const recentLogs = document.getElementById('recentLogs');
-  if (routes.length === 0) {
-    recentLogs.innerHTML = '<p class="text-xs text-textMuted">暂无记录</p>';
-  } else {
-    recentLogs.innerHTML = routes.slice(0, 10).map(r => 
-      '<div class="log-item flex items-center gap-3">' +
-        '<span class="text-lg">' + RESULT_ICONS[r.result] + '</span>' +
-        '<div class="flex-1 min-w-0">' +
-          '<p class="text-sm truncate">' + r.gym + (r.routeName ? ' - ' + r.routeName : '') + '</p>' +
-          '<p class="text-xs text-textMuted">' + TYPE_ICONS[r.type] + ' ' + r.grade + ' · ' + new Date(r.date).toLocaleDateString('zh-CN', {month:'short',day:'numeric'}) + '</p>' +
-        '</div>' +
-      '</div>'
-    ).join('');
-  }
-}
 
-// ===== Chat =====
-const DEMO_USERS = ['岩壁小能手', '抱石达人', '红点爱好者', '先锋战士', '传统攀爬手', '野攀发烧友'];
-
-function renderChat() {
-  const gym = document.getElementById('chatGym').value;
-  const container = document.getElementById('chatMessages');
-  const filtered = chatMessages.filter(m => m.gym === gym);
-  
-  if (filtered.length === 0) {
-    container.innerHTML = '<p class="text-center text-textMuted text-sm py-8">暂无消息，快来发言吧！</p>';
-  } else {
-    container.innerHTML = filtered.map(m => {
-      const isMine = m.isMine;
-      const time = new Date(m.time).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'});
-      return '<div class="' + (isMine ? 'chat-mine' : 'chat-other') + ' chat-msg">' +
-        '<div class="flex ' + (isMine ? 'flex-row-reverse' : 'flex-row') + ' items-end gap-2">' +
-          '<div class="w-8 h-8 rounded-full bg-' + (isMine ? 'primary' : 'accent') + ' flex items-center justify-center text-sm">' +
-            (isMine ? '我' : m.name[0]) +
-          '</div>' +
-          '<div class="' + (isMine ? 'bg-primary text-wall' : 'bg-slate-700') + ' rounded-2xl px-3 py-2">' +
-            '<p class="text-sm">' + m.text + '</p>' +
-            '<p class="text-xs ' + (isMine ? 'text-sky-200' : 'text-slate-400') + '">' + time + '</p>' +
-          '</div>' +
-        '</div>' +
-      '</div>';
+  function updateTrainHistory() {
+    const logs = window.ClimbStorage.getGymLogs();
+    const container = $('#train-log-list');
+    if (!logs.length) { container.innerHTML = '<p style="font-size:13px;color:var(--text-dim);text-align:center;padding:16px 0;">暂无历史记录</p>'; return; }
+    const byDate = {};
+    logs.forEach(log => {
+      const d = new Date(log.createdAt).toDateString();
+      if (!byDate[d]) byDate[d] = [];
+      byDate[d].push(log);
+    });
+    container.innerHTML = Object.entries(byDate).slice(0, 7).map(([date, dayLogs]) => {
+      const d = new Date(date);
+      const dateStr = `${d.getMonth()+1}/${d.getDate()}`;
+      const gym = dayLogs[0]?.gymName || '';
+      const count = dayLogs.filter(l => l.result === 'send').length;
+      const badge = count > 0 ? `<span class="badge send">${count}完攀</span>` : `<span class="badge attempt">${dayLogs.length}次</span>`;
+      return `<div class="log-item">
+        <div class="gym-icon">🏔️</div>
+        <div class="info"><h4>${dateStr} · ${gym}</h4><p>${dayLogs.length}条记录</p></div>
+        ${badge}
+      </div>`;
     }).join('');
-    container.scrollTop = container.scrollHeight;
   }
-}
 
-document.getElementById('chatGym').addEventListener('change', renderChat);
-
-document.getElementById('chatSend').addEventListener('click', () => {
-  const input = document.getElementById('chatInput');
-  const text = input.value.trim();
-  if (!text) return;
-  
-  const gym = document.getElementById('chatGym').value;
-  const msg = {
-    id: Date.now(),
-    gym: gym,
-    name: '我',
-    text: text,
-    time: new Date().toISOString(),
-    isMine: true
-  };
-  
-  chatMessages.push(msg);
-  saveChat();
-  renderChat();
-  input.value = '';
-  
-  // Add demo response after delay
-  setTimeout(() => {
-    const demoMsg = {
-      id: Date.now() + 1,
-      gym: gym,
-      name: DEMO_USERS[Math.floor(Math.random() * DEMO_USERS.length)],
-      text: getDemoResponse(text),
-      time: new Date().toISOString(),
-      isMine: false
-    };
-    chatMessages.push(demoMsg);
-    saveChat();
-    renderChat();
-  }, 1500);
-});
-
-document.getElementById('chatInput').addEventListener('keypress', e => {
-  if (e.key === 'Enter') {
-    document.getElementById('chatSend').click();
+  // ===== Tab4: 我的 =====
+  function initProfilePage() {
+    $('#edit-profile-btn')?.addEventListener('click', () => {
+      const form = $('#profile-form');
+      const isHidden = form.classList.contains('hidden');
+      form.classList.toggle('hidden', !isHidden);
+      $('#profile-data').classList.toggle('hidden', !isHidden);
+      if (isHidden) loadProfileForm();
+    });
+    $('#save-profile-btn')?.addEventListener('click', () => {
+      window.ClimbStorage.updateProfile({
+        height: parseInt($('#pf-height')?.value)||175,
+        armSpan: parseInt($('#pf-armspan')?.value)||178,
+        weight: parseInt($('#pf-weight')?.value)||65,
+        pullUp: parseInt($('#pf-pullup')?.value)||10,
+        climbingFrequency: 3, sessionDuration: 90
+      });
+      loadProfileData();
+      $('#profile-form').classList.add('hidden');
+      $('#profile-data').classList.remove('hidden');
+      showToast('档案已保存！');
+    });
+    $('#cal-prev')?.addEventListener('click', () => { currentCalDate.setMonth(currentCalDate.getMonth()-1); updateCalendar(); });
+    $('#cal-next')?.addEventListener('click', () => { currentCalDate.setMonth(currentCalDate.getMonth()+1); updateCalendar(); });
   }
-});
 
-function getDemoResponse(input) {
-  const responses = [
-    '好厉害！继续加油 💪',
-    '这个beta看起来不错！',
-    '下次试试脚先动，手再跟',
-    '核心要收紧，重心放低',
-    'V' + Math.floor(Math.random() * 10) + '过了吗？',
-    '最近在刷哪条线呀？',
-    '抱石的话要注意落地姿势哦',
-    '冲坠保护做好了吗？'
-  ];
-  return responses[Math.floor(Math.random() * responses.length)];
-}
+  function loadProfileData() {
+    const p = window.ClimbStorage.getProfile();
+    $('#profile-physical').textContent = `${p.height}cm / ${p.weight}kg`;
+    $('#profile-detail').textContent = `臂展${p.armSpan}cm · 引体${p.pullUp}个`;
+    const pullUpScore = Math.min(10, (p.pullUp||5)*0.7+3);
+    const coreScore = Math.min(10, pullUpScore*0.9);
+    const endurScore = Math.min(10, (p.climbingFrequency||2)*2+4);
+    const flexScore = 6.5;
+    updateAbilityBar('ab-strength', 'ab-strength-val', pullUpScore);
+    updateAbilityBar('ab-core', 'ab-core-val', coreScore);
+    updateAbilityBar('ab-endure', 'ab-endure-val', endurScore);
+    updateAbilityBar('ab-flex', 'ab-flex-val', flexScore);
+    loadProfileForm();
+  }
 
-// ===== Init =====
-initGradeSelect();
-updateStreak();
+  function loadProfileForm() {
+    const p = window.ClimbStorage.getProfile();
+    if ($('#pf-height')) $('#pf-height').value = p.height||175;
+    if ($('#pf-armspan')) $('#pf-armspan').value = p.armSpan||178;
+    if ($('#pf-weight')) $('#pf-weight').value = p.weight||65;
+    if ($('#pf-pullup')) $('#pf-pullup').value = p.pullUp||10;
+  }
 
-// Load demo chat messages if empty
-if (chatMessages.length === 0) {
-  chatMessages = [
-    { id: 1, gym: 'general', name: '岩壁小能手', text: '大家今天爬了吗？', time: new Date(Date.now() - 300000).toISOString(), isMine: false },
-    { id: 2, gym: 'general', name: '抱石达人', text: '刚刷了V5，感觉状态不错！', time: new Date(Date.now() - 240000).toISOString(), isMine: false },
-    { id: 3, gym: 'breek', name: '红点爱好者', text: 'Breek的蓝线真难', time: new Date(Date.now() - 180000).toISOString(), isMine: false },
-    { id: 4, gym: 'walltimes', name: '先锋战士', text: '壁虎的新线上了吗？', time: new Date(Date.now() - 120000).toISOString(), isMine: false }
-  ];
-  saveChat();
-}
+  function updateAbilityBar(barId, valId, score) {
+    const el = $('#'+barId), vel = $('#'+valId);
+    if (el) el.style.width = Math.min(100, Math.max(0, score*10))+'%';
+    if (vel) vel.textContent = score.toFixed(1);
+  }
+
+  function updateCalendar() {
+    const y = currentCalDate.getFullYear();
+    const m = currentCalDate.getMonth();
+    $('#cal-title').textContent = `${m+1}月 ${y}`;
+    const logs = window.ClimbStorage.getGymLogs();
+    const grid = $('#cal-grid');
+    const firstDay = new Date(y, m, 1).getDay()||7;
+    const daysInMonth = new Date(y, m+1, 0).getDate();
+    const today = new Date();
+    let html = '日 一 二 三 四 五 六'.split(' ').map(d => `<div class="day-label">${d}</div>`).join('');
+    for (let i = 1; i < firstDay; i++) html += '<div class="day empty"></div>';
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = new Date(y, m, d).toDateString();
+      const dayLogs = logs.filter(l => new Date(l.createdAt).toDateString() === dateStr);
+      const isToday = today.getDate()===d && today.getMonth()===m && today.getFullYear()===y;
+      const dot = dayLogs.length > 0 ? (dayLogs.some(l=>l.result==='send')?'send':dayLogs.some(l=>l.result==='flash')?'flash':'attempt') : null;
+      html += `<div class="day${isToday?' active':''}" style="${isToday?'border:1px solid var(--orange);':''}">
+        <span>${d}</span>
+        ${dot?`<span class="dot ${dot}"></span>`:''}
+      </div>`;
+    }
+    grid.innerHTML = html;
+  }
+
+  function updateGymList() {
+    const gyms = window.ClimbStorage.getGyms();
+    const logs = window.ClimbStorage.getGymLogs();
+    const container = $('#gym-list');
+    if (!gyms.length) { container.innerHTML = '<p style="font-size:13px;color:var(--text-dim);text-align:center;padding:12px 0;">暂无岩馆记录</p>'; return; }
+    container.innerHTML = gyms.map(gym => {
+      const gymLogs = logs.filter(l => l.gymId === gym.id);
+      const sendCount = gymLogs.filter(l => l.result === 'send').length;
+      const lastDate = gymLogs[0] ? new Date(gymLogs[0].createdAt).toLocaleDateString('zh-CN',{month:'numeric',day:'numeric'}) : '暂无';
+      return `<div class="log-item">
+        <div class="gym-icon">🏔️</div>
+        <div class="info"><h4>${gym.name}</h4><p>打卡${gymLogs.length}次 · ${sendCount}条完攀</p></div>
+        <span style="font-size:12px;color:var(--text-dim);">${lastDate}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function updateSavedRoutes() {
+    const cards = window.ClimbStorage.getRouteCards();
+    const container = $('#saved-routes');
+    if (!cards.length) { container.innerHTML = '<p style="font-size:14px;color:var(--text-dim);text-align:center;padding:20px 0;">暂无保存的线路</p>'; return; }
+    container.innerHTML = cards.slice(0,6).map(card => `
+      <div class="log-item" style="cursor:pointer;">
+        <div class="gym-icon" style="background:var(--wall);overflow:hidden;">
+          <img src="${card.photo||''}" style="width:100%;height:100%;object-fit:cover;opacity:0.7;">
+        </div>
+        <div class="info"><h4>${card.color}线路</h4><p>${card.gradeEquivalent||card.difficulty||'—'}</p></div>
+        <span class="badge ${(card.personalScore||7) >= 7?'send':'attempt'}" style="font-size:11px;padding:3px 8px;">
+          ${(card.personalScore||7).toFixed(1)}分
+        </span>
+      </div>`).join('');
+  }
+
+  // ===== 颜色选择器 =====
+  function initColorGrid(container, onSelect) {
+    if (!container) return;
+    const colors = [
+      { name: '黄色', hex: '#FBBF24' }, { name: '蓝色', hex: '#3B82F6' },
+      { name: '绿色', hex: '#22C55E' }, { name: '红色', hex: '#EF4444' },
+      { name: '白色', hex: '#F8FAFC' }, { name: '粉色', hex: '#EC4899' },
+      { name: '橙色', hex: '#F97316' }, { name: '紫色', hex: '#8B5CF6' },
+      { name: '灰色', hex: '#6B7280' }, { name: '黑色', hex: '#1F2937' },
+    ];
+    container.innerHTML = colors.map(c => {
+      const dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'color-dot';
+      dot.dataset.color = c.name;
+      dot.dataset.hex = c.hex;
+      dot.style.background = c.hex;
+      dot.style.opacity = '0.4';
+      dot.addEventListener('click', () => {
+        $$('.color-dot').forEach(d => { d.classList.remove('selected'); d.style.opacity = '0.4'; });
+        dot.classList.add('selected');
+        dot.style.opacity = '1';
+        selectedColor = c.name;
+        onSelect(c.name);
+      });
+      return dot.outerHTML;
+    }).join('');
+    // 重新绑定事件
+    container.querySelectorAll('.color-dot').forEach(dot => {
+      dot.addEventListener('click', () => {
+        $$('.color-dot').forEach(d => { d.classList.remove('selected'); d.style.opacity = '0.4'; });
+        dot.classList.add('selected');
+        dot.style.opacity = '1';
+        selectedColor = dot.dataset.color;
+        onSelect(dot.dataset.color);
+      });
+    });
+  }
+
+  // ===== Toast =====
+  function showToast(msg) {
+    const toast = $('#toast');
+    if (!toast) return;
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  // ===== 启动 =====
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else { init(); }
+
+})();

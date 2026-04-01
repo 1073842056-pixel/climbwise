@@ -3,207 +3,454 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ClimbWise - 攀岩AI助手</title>
+  <title>ClimbWise</title>
   <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            wall: '#0f172a',
-            wallLight: '#1e293b',
-            primary: '#38bdf8',
-            accent: '#f97316',
-            textMain: '#f1f5f9',
-            textMuted: '#94a3b8'
-          }
-        }
-      }
-    }
-  </script>
 </head>
-<body class="min-h-screen pb-16">
-  <header class="bg-wallLight px-4 py-3 flex items-center justify-between sticky top-0 z-50 border-b border-slate-700">
-    <div class="flex items-center gap-2">
-      <span class="text-2xl">🧗</span>
-      <h1 class="text-xl font-bold text-primary">ClimbWise</h1>
+<body>
+
+<div class="app">
+  
+  <!-- ===== 读线页 ===== -->
+  <section id="page-read" class="page active">
+    <div class="app-header">
+      <h1>🧗 读线</h1>
+      <p class="subtitle">拍照识线，AI教你怎么爬</p>
     </div>
-    <div class="text-sm text-textMuted" id="streakBadge"></div>
-  </header>
-
-  <nav class="bg-wallLight flex border-b border-slate-700 sticky top-14 z-40">
-    <button class="flex-1 py-3 text-sm font-medium text-textMuted tab-active" data-tab="analyze">📷 分析</button>
-    <button class="flex-1 py-3 text-sm font-medium text-textMuted" data-tab="log">📝 记录</button>
-    <button class="flex-1 py-3 text-sm font-medium text-textMuted" data-tab="stats">📊 统计</button>
-    <button class="flex-1 py-3 text-sm font-medium text-textMuted" data-tab="chat">💬 聊天</button>
-  </nav>
-
-  <main class="p-4 max-w-lg mx-auto">
-    <section id="tab-analyze" class="tab-content">
-      <div class="card p-4 mb-4">
-        <h2 class="text-lg font-semibold mb-3 flex items-center gap-2">🧗 线路照片分析</h2>
-        <div id="uploadArea" class="border-2 border-dashed border-slate-600 rounded-xl p-8 text-center cursor-pointer hover:border-primary transition-colors mb-4">
-          <div class="text-4xl mb-2">📸</div>
-          <p class="text-textMuted text-sm">点击或拖拽上传岩壁照片</p>
-          <p class="text-xs text-slate-500 mt-1">支持 JPG/PNG，最大 10MB</p>
-          <input type="file" id="photoInput" accept="image/*" class="hidden">
-        </div>
-        <div id="previewArea" class="hidden mb-4">
-          <div class="relative rounded-lg overflow-hidden">
-            <img id="previewImg" class="w-full max-h-64 object-contain bg-slate-900 rounded-lg">
-            <button id="clearPhoto" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm hover:bg-red-600">✕</button>
-          </div>
-        </div>
-        <button id="analyzeBtn" class="btn-accent w-full py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed mb-4" disabled>🔍 AI分析线路</button>
-        <div id="analyzeLoading" class="hidden text-center py-6">
-          <div class="text-3xl animate-bounce mb-2">🧗</div>
-          <p class="text-textMuted text-sm">AI分析中，请稍候...</p>
-        </div>
-        <div id="analyzeResult" class="hidden">
-          <div class="border-t border-slate-600 pt-4">
-            <h3 class="font-semibold text-primary mb-3">📍 手点识别</h3>
-            <ul id="handHolds" class="text-sm text-textMuted space-y-1 mb-4"></ul>
-            <h3 class="font-semibold text-green-400 mb-3">🦶 脚点识别</h3>
-            <ul id="footHolds" class="text-sm text-textMuted space-y-1 mb-4"></ul>
-            <h3 class="font-semibold text-accent mb-3">🔥 Beta 攀爬顺序</h3>
-            <div id="betaSequence" class="space-y-3 mb-4"></div>
-          </div>
-        </div>
-        <div id="stickmanSection" class="hidden mt-4 border-t border-slate-600 pt-4">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="font-semibold">🎬 动作演示</h3>
-            <div class="flex gap-2">
-              <button id="prevFrame" class="bg-slate-700 px-3 py-1 rounded text-sm hover:bg-slate-600">◀</button>
-              <span id="frameCounter" class="text-sm text-textMuted px-2">1/5</span>
-              <button id="nextFrame" class="bg-slate-700 px-3 py-1 rounded text-sm hover:bg-slate-600">▶</button>
-            </div>
-          </div>
-          <div class="relative bg-slate-900 rounded-lg overflow-hidden">
-            <img id="stickmanBg" class="w-full opacity-30">
-            <svg id="stickmanSvg" class="absolute inset-0 w-full h-full" viewBox="0 0 400 400"></svg>
-          </div>
-          <p id="frameHint" class="text-center text-xs text-textMuted mt-2"></p>
+    <div class="page-content">
+      
+      <!-- 上传区 -->
+      <div id="read-upload" class="upload-zone">
+        <div class="icon">📷</div>
+        <p>拍摄或上传岩壁照片</p>
+        <small>JPG/PNG，最大 10MB</small>
+        <input type="file" id="read-photo-input" accept="image/*" class="hidden">
+      </div>
+      
+      <!-- 照片预览 -->
+      <div id="read-preview" class="hidden">
+        <div class="video-preview">
+          <img id="read-preview-img" style="width:100%;max-height:280px;object-fit:contain;background:#000;border-radius:16px;display:block;">
+          <button class="clear-btn" id="read-clear">✕</button>
         </div>
       </div>
-    </section>
-
-    <section id="tab-log" class="tab-content hidden">
-      <div class="card p-4 mb-4">
-        <h2 class="text-lg font-semibold mb-4">📝 打卡记录</h2>
-        <div class="mb-4">
-          <label class="block text-sm text-textMuted mb-1">岩馆/岩壁名称 *</label>
-          <input type="text" id="gymName" placeholder="例如：岩时·壁虎攀岩馆" class="w-full px-3 py-2">
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm text-textMuted mb-1">线路编号/名称</label>
-          <input type="text" id="routeName" placeholder="例如：#5 或 小绿龙" class="w-full px-3 py-2">
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm text-textMuted mb-2">攀岩类型</label>
-          <div class="flex gap-2">
-            <button class="type-btn flex-1 py-2 rounded-lg border border-slate-600 text-sm" data-type="boulder">🧗 抱石</button>
-            <button class="type-btn flex-1 py-2 rounded-lg border border-slate-600 text-sm" data-type="sport">🏔️ 运动攀</button>
-            <button class="type-btn flex-1 py-2 rounded-lg border border-slate-600 text-sm" data-type="trad">🧭 传统攀</button>
-          </div>
-        </div>
-        <div class="mb-4">
-          <div class="flex items-center justify-between mb-2">
-            <label class="text-sm text-textMuted">难度体系</label>
-            <div class="flex bg-slate-800 rounded-lg p-1">
-              <button id="gradeV" class="px-3 py-1 rounded text-xs font-medium bg-primary text-wall">V系</button>
-              <button id="gradeY" class="px-3 py-1 rounded text-xs font-medium">YDS</button>
-            </div>
-          </div>
-          <select id="gradeSelect" class="w-full px-3 py-2"></select>
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm text-textMuted mb-2">完成结果</label>
-          <div class="grid grid-cols-4 gap-2">
-            <button class="result-btn py-3 rounded-lg border border-slate-600 flex flex-col items-center text-sm" data-result="send"><span class="text-lg">✓</span><span>Send</span></button>
-            <button class="result-btn py-3 rounded-lg border border-slate-600 flex flex-col items-center text-sm" data-result="flash"><span class="text-lg">⚡</span><span>Flash</span></button>
-            <button class="result-btn py-3 rounded-lg border border-slate-600 flex flex-col items-center text-sm" data-result="onsight"><span class="text-lg">🎯</span><span>Onsight</span></button>
-            <button class="result-btn py-3 rounded-lg border border-slate-600 flex flex-col items-center text-sm" data-result="fail"><span class="text-lg">❌</span><span>尝试</span></button>
-          </div>
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm text-textMuted mb-1">线路照片（可选）</label>
-          <div id="logUploadArea" class="border border-slate-600 rounded-lg p-4 text-center cursor-pointer hover:border-primary transition-colors">
-            <span class="text-2xl">📷</span>
-            <p class="text-xs text-textMuted mt-1">点击上传照片</p>
-            <input type="file" id="logPhotoInput" accept="image/*" class="hidden">
-          </div>
-          <div id="logPhotoPreview" class="hidden mt-2">
-            <img id="logPhotoImg" class="w-full h-32 object-cover rounded-lg">
-          </div>
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm text-textMuted mb-1">笔记</label>
-          <textarea id="routeNotes" rows="3" placeholder="记录你的感受、问题或心得..." class="w-full px-3 py-2 resize-none"></textarea>
-        </div>
-        <div class="mb-4 flex items-center gap-2">
-          <input type="checkbox" id="wantAiFeedback" class="w-4 h-4 rounded">
-          <label for="wantAiFeedback" class="text-sm text-textMuted">🤖 需要AI点评</label>
-        </div>
-        <button id="submitLog" class="btn-primary w-full py-3 rounded-lg">✅ 保存记录</button>
+      
+      <!-- 颜色选择 -->
+      <div id="read-colors" class="hidden">
+        <p style="text-align:center;font-size:14px;color:var(--text-muted);margin-bottom:14px;">选择线路颜色</p>
+        <div class="color-grid" id="color-grid"></div>
       </div>
-    </section>
-
-    <section id="tab-stats" class="tab-content hidden">
-      <div class="card p-4 mb-4">
-        <h2 class="text-lg font-semibold mb-4">📊 成就统计</h2>
-        <div class="grid grid-cols-2 gap-3 mb-6">
-          <div class="bg-slate-800 rounded-lg p-4 text-center">
-            <div class="text-2xl font-bold text-primary" id="totalRoutes">0</div>
-            <div class="text-xs text-textMuted">总线路数</div>
-          </div>
-          <div class="bg-slate-800 rounded-lg p-4 text-center">
-            <div class="text-2xl font-bold text-accent" id="currentStreak">0</div>
-            <div class="text-xs text-textMuted">连续天数</div>
-          </div>
-          <div class="bg-slate-800 rounded-lg p-4 text-center">
-            <div class="text-2xl font-bold text-green-400" id="sendRate">0%</div>
-            <div class="text-xs text-textMuted">Send率</div>
-          </div>
-          <div class="bg-slate-800 rounded-lg p-4 text-center">
-            <div class="text-2xl font-bold text-yellow-400" id="flashRate">0%</div>
-            <div class="text-xs text-textMuted">Flash率</div>
-          </div>
+      
+      <!-- 评分预览（三维） -->
+      <div id="read-scores" class="hidden">
+        <div class="score-bar">
+          <span class="label">力量</span>
+          <div class="track"><div class="fill orange" id="score-strength" style="width:0%"></div></div>
+          <span class="value" id="score-strength-val">—</span>
         </div>
-        <div class="mb-6">
-          <h3 class="font-semibold text-sm mb-3">📈 难度分布</h3>
-          <div id="gradeChart" class="space-y-2"></div>
+        <div class="score-bar">
+          <span class="label">伸展</span>
+          <div class="track"><div class="fill cyan" id="score-reach" style="width:0%"></div></div>
+          <span class="value" id="score-reach-val">—</span>
         </div>
-        <div>
-          <h3 class="font-semibold text-sm mb-3">🕐 最近记录</h3>
-          <div id="recentLogs" class="space-y-2"></div>
+        <div class="score-bar">
+          <span class="label">体感</span>
+          <div class="track"><div class="fill orange" id="score-overall" style="width:0%"></div></div>
+          <span class="value" id="score-overall-val">—</span>
         </div>
       </div>
-    </section>
-
-    <section id="tab-chat" class="tab-content hidden">
-      <div class="card p-4 mb-4">
-        <h2 class="text-lg font-semibold mb-3">💬 攀岩圈</h2>
-        <div class="mb-4">
-          <select id="chatGym" class="w-full px-3 py-2">
-            <option value="general">🏠 公共聊天室</option>
-            <option value="breek">🧱 Breek 抱石馆</option>
-            <option value="walltimes">🏔️ 岩时·壁虎</option>
-            <option value="kailas">🧗 KAILAS 岩馆</option>
+      
+      <!-- 主按钮 -->
+      <button id="read-start-btn" class="btn-primary hidden" disabled>开始读线</button>
+      
+      <!-- 加载中 -->
+      <div id="read-loading" class="hidden">
+        <div class="loader">
+          <div class="emoji">🧗</div>
+          <p id="read-status">正在识别手点脚点...</p>
+        </div>
+        <div class="progress-dots" id="read-dots">
+          <div class="dot active"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+        <div class="progress-track"><div class="fill" id="read-bar" style="width:0%"></div></div>
+      </div>
+      
+      <!-- ===== 读线结果 ===== -->
+      <div id="read-result" class="hidden fade-in">
+        <div class="result-header">
+          <div class="back" id="read-back">←</div>
+          <div class="badge" id="read-grade-badge">V4-5</div>
+        </div>
+        
+        <!-- 岩壁+火柴人 -->
+        <div style="position:relative;border-radius:16px;overflow:hidden;margin-bottom:20px;background:#000;">
+          <img id="result-wall-img" style="width:100%;opacity:0.35;display:block;">
+          <svg id="result-stickman-svg" style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 1 1" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+        
+        <!-- 帧控制 -->
+        <div class="flex items-center gap-2 mb-6">
+          <button class="btn-secondary" id="prev-frame" style="width:auto;padding:10px 16px;flex-shrink:0;">◀</button>
+          <div style="flex:1;">
+            <input type="range" id="frame-slider" min="0" max="0" value="0" style="width:100%;">
+          </div>
+          <button class="btn-secondary" id="next-frame" style="width:auto;padding:10px 16px;flex-shrink:0;">▶</button>
+          <span id="frame-counter" style="font-size:12px;color:var(--text-muted);width:36px;text-align:right;flex-shrink:0;">1/5</span>
+        </div>
+        
+        <!-- Beta卡片 -->
+        <div id="beta-cards"></div>
+        
+        <!-- 三维评分 -->
+        <div class="card mt-4">
+          <div class="score-bar">
+            <span class="label">力量</span>
+            <div class="track"><div class="fill orange" id="res-strength" style="width:0%"></div></div>
+            <span class="value" id="res-strength-val">—</span>
+          </div>
+          <div class="score-bar">
+            <span class="label">伸展</span>
+            <div class="track"><div class="fill cyan" id="res-reach" style="width:0%"></div></div>
+            <span class="value" id="res-reach-val">—</span>
+          </div>
+          <div class="score-bar">
+            <span class="label">体感</span>
+            <div class="track"><div class="fill orange" id="res-overall" style="width:0%"></div></div>
+            <span class="value" id="res-overall-val">—</span>
+          </div>
+        </div>
+        
+        <!-- 建议 -->
+        <div id="result-suggestions" class="card" style="border-left:4px solid var(--cyan);">
+          <p style="font-size:13px;color:var(--cyan);font-weight:600;margin-bottom:6px;">💡 针对性建议</p>
+          <ul id="suggestions-list" style="list-style:none;padding:0;"></ul>
+        </div>
+        
+        <button class="btn-primary mt-4" id="save-route-btn">📥 保存线路</button>
+        <button class="btn-secondary" id="read-restart">← 重新读线</button>
+      </div>
+      
+    </div>
+  </section>
+  
+  <!-- ===== 赏线页 ===== -->
+  <section id="page-review" class="page">
+    <div class="app-header">
+      <h1>🎬 赏线</h1>
+      <p class="subtitle">上传视频，AI分析动作质量</p>
+    </div>
+    <div class="page-content">
+      
+      <!-- 上传入口 -->
+      <div id="review-upload" class="upload-zone">
+        <div class="icon">📹</div>
+        <p>上传爬线视频</p>
+        <small>MP4/MOV，最大 100MB</small>
+        <input type="file" id="review-video-input" accept="video/*" class="hidden">
+      </div>
+      
+      <!-- 视频预览 -->
+      <div id="review-preview" class="hidden">
+        <div class="video-preview">
+          <video id="review-video-el" controls style="width:100%;max-height:280px;object-fit:contain;background:#000;display:block;"></video>
+          <button class="clear-btn" id="review-clear">✕</button>
+        </div>
+      </div>
+      
+      <!-- 关联线路 -->
+      <div id="review-link-section" class="hidden card">
+        <div class="form-group" style="margin-bottom:0;">
+          <label>关联线路（选填）</label>
+          <select id="review-route-select">
+            <option value="">— 不关联线路 —</option>
           </select>
-        </div>
-        <div id="chatMessages" class="h-80 overflow-y-auto scrollbar-hide space-y-3 mb-4 px-1"></div>
-        <div class="flex gap-2">
-          <input type="text" id="chatInput" placeholder="说点什么..." class="flex-1 px-3 py-2">
-          <button id="chatSend" class="btn-primary px-4 py-2 rounded-lg">发送</button>
+          <p style="font-size:12px;color:var(--text-dim);margin-top:6px;">关联后可对比最优beta分析</p>
         </div>
       </div>
-    </section>
-  </main>
+      
+      <button id="review-start-btn" class="btn-primary hidden" disabled>🔍 开始赏线</button>
+      
+      <!-- 加载中 -->
+      <div id="review-loading" class="hidden">
+        <div class="loader">
+          <div class="emoji">🧗</div>
+          <p id="review-status">正在提取视频帧...</p>
+        </div>
+        <div class="progress-dots" id="review-dots">
+          <div class="dot active"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+        <div class="progress-track"><div class="fill" id="review-bar" style="width:0%"></div></div>
+      </div>
+      
+      <!-- ===== 赏线结果 ===== -->
+      <div id="review-result" class="hidden fade-in">
+        <div class="result-header">
+          <div class="back" id="review-back">←</div>
+          <div class="badge" id="review-score-badge">8.2分</div>
+        </div>
+        
+        <!-- 关键帧时间线 -->
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">关键帧</p>
+        <div class="frame-timeline" id="frame-timeline"></div>
+        
+        <!-- 综合评分 -->
+        <div class="card" style="display:flex;align-items:center;gap:20px;margin-bottom:16px;">
+          <div class="score-circle" id="overall-score-circle">—</div>
+          <div style="flex:1;">
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:6px;">动作匹配度</div>
+            <div style="font-size:20px;font-weight:700;color:var(--cyan);" id="beta-match-rate">—</div>
+            <div style="font-size:12px;color:var(--text-dim);margin-top:2px;" id="detected-beta-text"></div>
+          </div>
+        </div>
+        
+        <!-- 主要问题 -->
+        <div id="review-issues"></div>
+        
+        <!-- 改进建议 -->
+        <div class="card" style="border-left:4px solid var(--cyan);">
+          <p style="font-size:13px;color:var(--cyan);font-weight:600;margin-bottom:10px;">💡 改进建议</p>
+          <ul id="review-improvements" style="list-style:none;padding:0;"></ul>
+        </div>
+        
+        <!-- 分步评分 -->
+        <div class="card mt-4">
+          <p style="font-size:14px;font-weight:600;margin-bottom:12px;">📍 分步评分</p>
+          <div id="step-scores"></div>
+        </div>
+        
+        <button class="btn-primary mt-4" id="save-review-btn">📥 保存分析</button>
+        <button class="btn-secondary" id="review-restart">← 重新赏线</button>
+      </div>
+      
+    </div>
+  </section>
+  
+  <!-- ===== 训练页 ===== -->
+  <section id="page-train" class="page">
+    <div class="app-header">
+      <h1>📂 训练</h1>
+      <p class="subtitle" id="train-subtitle">今日暂无训练记录</p>
+    </div>
+    <div class="page-content">
+      
+      <!-- 今日概览 -->
+      <div class="card" id="today-summary" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div>
+            <div style="font-size:13px;color:var(--text-muted);" id="today-date">4月1日</div>
+            <div style="font-size:17px;font-weight:600;margin-top:2px;" id="today-gym">—</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:24px;font-weight:700;color:var(--orange);" id="today-count">0</div>
+            <div style="font-size:12px;color:var(--text-muted);">条完攀</div>
+          </div>
+        </div>
+        <div id="today-grid" class="classify-grid"></div>
+        <button class="btn-secondary" id="add-train-btn" style="margin-top:12px;">+ 添加训练</button>
+      </div>
+      
+      <!-- 上传入口 -->
+      <div id="train-upload" class="upload-zone">
+        <div class="icon">📹</div>
+        <p>上传训练视频</p>
+        <small>批量上传，AI自动归类整理</small>
+        <input type="file" id="train-video-input" accept="video/*" multiple class="hidden">
+      </div>
+      
+      <!-- 待归类列表 -->
+      <div id="unclassified-list" class="hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <p style="font-size:15px;font-weight:600;">待归类视频</p>
+          <span style="font-size:13px;color:var(--text-muted);" id="unclassified-count">0</span>
+        </div>
+        <div id="unclassified-items"></div>
+      </div>
+      
+      <!-- 归类编辑弹窗 -->
+      <div id="classify-modal" class="modal-overlay">
+        <div class="modal">
+          <h2>📂 视频归类</h2>
+          <div id="classify-video-preview" style="border-radius:12px;overflow:hidden;margin-bottom:16px;background:#000;">
+            <video id="classify-video-el" controls style="width:100%;max-height:200px;object-fit:contain;display:block;"></video>
+          </div>
+          
+          <div class="form-group">
+            <label>线路颜色</label>
+            <div class="color-grid" id="classify-colors"></div>
+          </div>
+          
+          <div class="form-group">
+            <label>难度等级</label>
+            <select id="classify-grade" style="width:100%;background:var(--wall);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-size:16px;">
+              <option value="">选择难度</option>
+              <option value="V0">V0</option><option value="V1">V1</option><option value="V2">V2</option>
+              <option value="V3">V3</option><option value="V4">V4</option><option value="V5">V5</option>
+              <option value="V6">V6</option><option value="V7">V7</option><option value="V8+">V8+</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>结果</label>
+            <div class="select-group">
+              <button class="select-pill" data-result="send">✓ 完攀</button>
+              <button class="select-pill" data-result="flash">⚡ Flash</button>
+              <button class="select-pill" data-result="attempt">❌ 尝试</button>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>岩馆</label>
+            <input type="text" id="classify-gym" placeholder="例如：Breek抱石馆" style="width:100%;background:var(--wall);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-size:16px;">
+          </div>
+          
+          <button class="btn-primary" id="confirm-classify-btn">确认归类</button>
+          <button class="btn-secondary" id="cancel-classify-btn" style="margin-top:8px;">取消</button>
+        </div>
+      </div>
+      
+      <!-- 历史记录 -->
+      <div id="train-history" class="mt-6">
+        <p style="font-size:15px;font-weight:600;margin-bottom:12px;">📅 历史训练</p>
+        <div id="train-log-list"></div>
+      </div>
+      
+    </div>
+  </section>
+  
+  <!-- ===== 我的页 ===== -->
+  <section id="page-profile" class="page">
+    <div class="app-header">
+      <h1>👤 我的</h1>
+      <p class="subtitle">能力档案 & 训练记录</p>
+    </div>
+    <div class="page-content">
+      
+      <!-- 能力档案 -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h2 class="card-title" style="margin:0;">能力档案</h2>
+          <button class="select-pill" id="edit-profile-btn" style="font-size:12px;padding:6px 12px;">编辑</button>
+        </div>
+        <div id="profile-data">
+          <div style="font-size:28px;font-weight:700;margin-bottom:4px;" id="profile-physical">—</div>
+          <div style="font-size:14px;color:var(--text-muted);" id="profile-detail">—</div>
+        </div>
+        <div id="profile-form" class="hidden" style="margin-top:16px;">
+          <div class="form-group">
+            <label>身高 (cm)</label>
+            <input type="number" id="pf-height" placeholder="178">
+          </div>
+          <div class="form-group">
+            <label>臂展 (cm)</label>
+            <input type="number" id="pf-armspan" placeholder="181">
+          </div>
+          <div class="form-group">
+            <label>体重 (kg)</label>
+            <input type="number" id="pf-weight" placeholder="62">
+          </div>
+          <div class="form-group">
+            <label>引体向上（最多）</label>
+            <input type="number" id="pf-pullup" placeholder="15">
+          </div>
+          <button class="btn-primary" id="save-profile-btn">保存</button>
+        </div>
+      </div>
+      
+      <!-- 能力雷达 -->
+      <div class="card">
+        <h2 class="card-title">📊 能力评分</h2>
+        <div id="ability-bars">
+          <div class="chart-row">
+            <span class="chart-label">力量</span>
+            <div class="chart-track"><div class="chart-fill" id="ab-strength" style="width:0%"></div></div>
+            <span class="chart-value" id="ab-strength-val">—</span>
+          </div>
+          <div class="chart-row">
+            <span class="chart-label">核心</span>
+            <div class="chart-track"><div class="chart-fill" id="ab-core" style="width:0%"></div></div>
+            <span class="chart-value" id="ab-core-val">—</span>
+          </div>
+          <div class="chart-row">
+            <span class="chart-label">耐力</span>
+            <div class="chart-track"><div class="chart-fill" id="ab-endure" style="width:0%"></div></div>
+            <span class="chart-value" id="ab-endure-val">—</span>
+          </div>
+          <div class="chart-row">
+            <span class="chart-label">柔韧</span>
+            <div class="chart-track"><div class="chart-fill" id="ab-flex" style="width:0%"></div></div>
+            <span class="chart-value" id="ab-flex-val">—</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 训练日历 -->
+      <div class="card">
+        <div class="calendar">
+          <div class="calendar-month">
+            <button id="cal-prev">◀</button>
+            <h3 id="cal-title">4月 2026</h3>
+            <button id="cal-next">▶</button>
+          </div>
+          <div class="calendar-grid" id="cal-grid"></div>
+          <div style="display:flex;gap:16px;margin-top:12px;justify-content:center;">
+            <span style="font-size:12px;color:var(--text-muted);">● 完攀</span>
+            <span style="font-size:12px;color:var(--text-muted);">● 尝试</span>
+            <span style="font-size:12px;color:var(--text-muted);">● Flash</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 岩馆打卡 -->
+      <div class="card">
+        <h2 class="card-title">🏠 岩馆打卡</h2>
+        <div id="gym-list"></div>
+      </div>
+      
+      <!-- 保存的线路 -->
+      <div class="card">
+        <h2 class="card-title">🧗 我的线路</h2>
+        <div id="saved-routes">
+          <p style="font-size:14px;color:var(--text-dim);text-align:center;padding:20px 0;">暂无保存的线路</p>
+        </div>
+      </div>
+      
+    </div>
+  </section>
+  
+  <!-- ===== 底部导航 ===== -->
+  <nav class="tab-nav">
+    <button class="tab-nav-item active" data-page="read">
+      <span class="icon">🧗</span>
+      <span>读线</span>
+    </button>
+    <button class="tab-nav-item" data-page="review">
+      <span class="icon">🎬</span>
+      <span>赏线</span>
+    </button>
+    <button class="tab-nav-item" data-page="train">
+      <span class="icon">📂</span>
+      <span>训练</span>
+    </button>
+    <button class="tab-nav-item" data-page="profile">
+      <span class="icon">👤</span>
+      <span>我的</span>
+    </button>
+  </nav>
+  
+</div>
 
-  <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-4 py-2 rounded-full text-sm opacity-0 transition-opacity pointer-events-none z-50"></div>
+<!-- Toast -->
+<div id="toast" class="toast"></div>
 
-  <script src="lib/api.js"></script>
-  <script src="app.js"></script>
+<!-- Scripts -->
+<script src="lib/storage.js"></script>
+<script src="lib/vision.js"></script>
+<script src="lib/stickman.js"></script>
+<script src="lib/video-analysis.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
