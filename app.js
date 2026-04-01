@@ -16,6 +16,8 @@
   let videoDataUrl = null;
   let currentReviewResult = null;
   let currentClassifyVideo = null;
+  let isPlayingBeta = false;
+  let playBetaInterval = null;
   let unclassifiedVideos = [];
   let currentCalDate = new Date();
 
@@ -76,7 +78,8 @@
     $('#save-route-btn')?.addEventListener('click', () => showToast('已保存！'));
     $('#prev-frame')?.addEventListener('click', () => changeFrame(-1));
     $('#next-frame')?.addEventListener('click', () => changeFrame(1));
-    $('#frame-slider')?.addEventListener('input', e => { currentFrame = parseInt(e.target.value); stickman?.goTo(currentFrame); updateFrameUI(); });
+    $('#frame-slider')?.addEventListener('input', e => { currentFrame = parseInt(e.target.value); stickman?.goTo(currentFrame); updateFrameUI(); renderBetaCards(analysisResult?.beta); });
+    $('#play-beta-btn')?.addEventListener('click', togglePlayBeta);
 
     initColorGrid($('#color-grid'), color => { selectedColor = color; $('#read-start-btn').disabled = !(photoDataUrl && selectedColor); });
   }
@@ -185,6 +188,7 @@
     const svgEl = $('#result-stickman-svg');
     const imgEl = $('#result-wall-img');
     stickman = new window.ClimbStickman.StickmanRenderer(svgEl, imgEl);
+    stickman.setBetaSteps(result.beta || []);
     stickman.setFrames(result.frames);
     const slider = $('#frame-slider');
     slider.max = result.frames.length - 1;
@@ -284,8 +288,62 @@
   function updateFrameUI() {
     const slider = $('#frame-slider');
     const frameCount = analysisResult?.frames?.length || 1;
+    const betaCount = analysisResult?.beta?.length || 1;
     slider.value = currentFrame;
+    slider.max = frameCount - 1;
     $('#frame-counter').textContent = `${currentFrame+1}/${frameCount}`;
+    
+    // 更新步骤指示器
+    const stepIndicator = $('#step-indicator');
+    if (stepIndicator) {
+      const step = currentFrame + 1;
+      const total = analysisResult?.beta?.length || frameCount;
+      stepIndicator.textContent = step <= total ? `第${step}步` : '';
+      stepIndicator.style.display = step <= total ? 'inline-block' : 'none';
+    }
+  }
+
+  // ===== Beta自动播放 =====
+  
+  function togglePlayBeta() {
+    if (isPlayingBeta) {
+      stopPlayBeta();
+    } else {
+      startPlayBeta();
+    }
+  }
+  
+  function startPlayBeta() {
+    if (!analysisResult?.beta?.length) return;
+    isPlayingBeta = true;
+    $('#play-beta-btn').textContent = '⏸';
+    $('#play-beta-btn').style.background = 'var(--orange)';
+    $('#play-beta-btn').style.color = '#fff';
+    
+    let step = currentFrame;
+    const maxStep = Math.min(analysisResult.beta.length, analysisResult.frames.length);
+    
+    playBetaInterval = setInterval(() => {
+      step++;
+      if (step >= maxStep) {
+        step = 0; // 循环
+      }
+      currentFrame = step;
+      stickman?.goTo(step);
+      updateFrameUI();
+      renderBetaCards(analysisResult.beta);
+    }, 1500); // 每1.5秒一步
+  }
+  
+  function stopPlayBeta() {
+    isPlayingBeta = false;
+    if (playBetaInterval) {
+      clearInterval(playBetaInterval);
+      playBetaInterval = null;
+    }
+    $('#play-beta-btn').textContent = '▶';
+    $('#play-beta-btn').style.background = '';
+    $('#play-beta-btn').style.color = '';
   }
 
   function changeFrame(dir) {
