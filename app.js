@@ -49,7 +49,7 @@
     $('#page-' + page).classList.add('active');
     $$('.tab-nav-item').forEach(b => b.classList.toggle('active', b.dataset.page === page));
     if (page === 'train') { updateTrainSummary(); updateTrainHistory(); }
-    if (page === 'profile') { loadProfileData(); updateCalendar(); updateGymList(); updateSavedRoutes(); }
+    if (page === 'profile') { loadProfileData(); updateCalendar(); updateGymList(); updateSavedRoutes(); updateTrainingInsights(); }
   }
 
   // ==================== Tab1: 读线 ====================
@@ -662,6 +662,72 @@
         <span style="font-size:12px;color:var(--text-muted);">${lastDate}</span>
       </div>`;
     }).join('');
+  }
+
+  function updateTrainingInsights() {
+    const insights = window.ClimbStorage.getTrainingInsights();
+    const container = $('#training-insights');
+    if (!container) return;
+    
+    // 周趋势图表
+    const trend = insights.weeklyTrend || [];
+    const maxSends = Math.max(...trend.map(d => d.sends), 1);
+    
+    let chartHtml = `<div style="margin-bottom:16px;">
+      <p style="font-size:14px;font-weight:700;margin-bottom:12px;">📈 7天完攀趋势</p>
+      <div style="display:flex;align-items:flex-end;gap:6px;height:60px;">
+        ${trend.map(d => {
+          const height = d.sends > 0 ? Math.max(20, (d.sends / maxSends) * 50) : 8;
+          const color = d.sends > 0 ? 'var(--orange)' : 'var(--border)';
+          return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <div style="width:100%;background:${color};border-radius:4px 4px 0 0;height:${height}px;transition:height 0.3s;"></div>
+            <span style="font-size:9px;color:var(--text-muted);">${d.date.split('/')[1]||d.date.slice(-2)}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+    
+    // 弱点分析
+    const weaknesses = insights.topWeaknesses || [];
+    let weaknessHtml = '';
+    if (weaknesses.length > 0) {
+      weaknessHtml = `<div style="margin-bottom:16px;">
+        <p style="font-size:14px;font-weight:700;margin-bottom:10px;">🎯 需要加强的地方</p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          ${weaknesses.map(w => {
+            const colors = { high: '#ef4444', medium: 'var(--orange)' };
+            const bg = { high: '#fef2f2', medium: 'var(--orange-light)' };
+            return `<div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:${bg[w.priority]||'var(--wall)'};border-radius:100px;">
+              <span style="font-size:13px;font-weight:700;color:${colors[w.priority]||'var(--text)'};">${w.keyword}</span>
+              <span style="font-size:11px;color:${colors[w.priority]||'var(--text-muted)'};">×${w.count}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }
+    
+    // 进步趋势
+    let progressHtml = '';
+    if (insights.weeklyImprovement) {
+      const imp = insights.weeklyImprovement;
+      const arrow = imp.direction === 'up' ? '📈' : imp.direction === 'down' ? '📉' : '➡️';
+      const color = imp.direction === 'up' ? 'var(--cyan)' : imp.direction === 'down' ? '#ef4444' : 'var(--text-muted)';
+      progressHtml = `<div style="padding:12px 16px;background:var(--wall);border-radius:10px;display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <span style="font-size:22px;">${arrow}</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:${color};">${imp.label}</div>
+          <div style="font-size:11px;color:var(--text-muted);">vs 上周</div>
+        </div>
+      </div>`;
+    }
+    
+    container.innerHTML = `<div class="card" style="margin-bottom:14px;">
+      <p style="font-size:15px;font-weight:800;margin-bottom:14px;">📊 训练洞察</p>
+      ${progressHtml}
+      ${chartHtml}
+      ${weaknessHtml}
+      ${insights.totalAnalyses > 0 ? `<p style="font-size:12px;color:var(--text-muted);text-align:center;">已完成 ${insights.totalAnalyses} 次动作分析</p>` : '<p style="font-size:12px;color:var(--text-muted);text-align:center;">完成赏线分析后解锁更多洞察</p>'}
+    </div>`;
   }
 
   function updateSavedRoutes() {

@@ -115,3 +115,8 @@ stickman.js → SVG火柴人动画（逐帧渲染）
 - storage.js升级：新增分析记录持久化+训练洞察(weakness分析+周趋势)
 - app.js：赏线保存时写入analysis_records
 - 新增getTrainingInsights()：周趋势/弱点排序/进步计算
+
+### Round 6 (00:50)
+- "我的"页面新增训练洞察卡片：7天完攀趋势柱状图+弱点优先级标签+周对比进步箭头
+- updateTrainingInsights()实时计算周趋势和弱点分布
+- switchPage自动刷新训练洞察
