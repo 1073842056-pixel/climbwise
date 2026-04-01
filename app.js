@@ -212,14 +212,22 @@
     $('#res-strength-val').textContent = v(result.strengthScore);
     $('#res-reach').style.width = f(result.reachScore);
     $('#res-reach-val').textContent = v(result.reachScore);
-    $('#res-overall').style.width = f(result.overallScore);
-    $('#res-overall-val').textContent = v(result.overallScore);
     
+    // 概览区
+    const overall = result.overallScore || 7.0;
+    const overallEl = $('#overall-score-big');
+    if (overallEl) overallEl.textContent = overall.toFixed(1);
+    
+    const cruxEl = $('#crux-text');
+    if (cruxEl) cruxEl.textContent = result.cruxDescription || result.difficultyReason || '—';
+    
+    const startEl = $('#start-desc');
+    if (startEl) startEl.textContent = result.startDescription || '—';
     // 难度原因说明
     if (result.difficultyReason) {
       const reasonEl = $('#difficulty-reason');
       if (reasonEl) {
-        reasonEl.textContent = result.difficultyReason;
+        reasonEl.querySelector('p:last-child').textContent = result.difficultyReason;
         reasonEl.style.display = 'block';
       }
     }

@@ -83,6 +83,24 @@
           <div class="badge" id="read-grade-badge">V4-5</div>
         </div>
         
+        <!-- 难点+体感概览（新增） -->
+        <div id="beta-overview" class="card" style="margin-bottom:14px;border-left:5px solid var(--orange);">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:center;">
+            <div>
+              <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;letter-spacing:0.5px;">⚡ 难点</div>
+              <div id="crux-text" style="font-size:13px;color:var(--text);font-weight:600;line-height:1.4;">—</div>
+            </div>
+            <div style="text-align:center;padding:10px;background:var(--orange-light);border-radius:12px;">
+              <div style="font-size:11px;font-weight:700;color:var(--orange);margin-bottom:2px;">体感评分</div>
+              <div id="overall-score-big" style="font-size:28px;font-weight:900;color:var(--orange);line-height:1;">—</div>
+            </div>
+          </div>
+          <div id="start-finish-row" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;letter-spacing:0.5px;">🚩 起点</div>
+            <div id="start-desc" style="font-size:12.5px;color:var(--text-secondary);line-height:1.4;">—</div>
+          </div>
+        </div>
+        
         <!-- 岩壁+火柴人 -->
         <div style="position:relative;border-radius:16px;overflow:hidden;margin-bottom:20px;background:#000;">
           <img id="result-wall-img" style="width:100%;opacity:0.35;display:block;">
@@ -116,11 +134,6 @@
             <span class="label">伸展</span>
             <div class="track"><div class="fill cyan" id="res-reach" style="width:0%"></div></div>
             <span class="value" id="res-reach-val">—</span>
-          </div>
-          <div class="score-bar">
-            <span class="label">体感</span>
-            <div class="track"><div class="fill orange" id="res-overall" style="width:0%"></div></div>
-            <span class="value" id="res-overall-val">—</span>
           </div>
         </div>
         
